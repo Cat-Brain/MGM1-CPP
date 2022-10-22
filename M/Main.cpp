@@ -19,10 +19,19 @@ sleep_until(system_clock::now() + seconds(1));
 #include <time.h>       // time(NULL)
 #include <string> // for string class
 #include <list> // For list class.
+#include <vector> // For vectors which are essentially halfway between lists and arrays.
 
 using std::string;
+using std::list;
+using std::vector;
 
 typedef unsigned int uint;
+
+
+int RandRange(int min, int max)
+{
+    return (rand() % (max - min)) + min;
+}
 
 
 
@@ -181,10 +190,10 @@ class Hit
 {
 public:
     int damage;
-    StatusEffect inflictions;
+    list<StatusEffect> inflictions;
     int attacker;
 
-    Hit(int damage, StatusEffect inflictions, int attacker):
+    Hit(int damage, list<StatusEffect> inflictions, int attacker):
         damage(damage), inflictions(inflictions), attacker(attacker)
     {}
 
@@ -202,6 +211,8 @@ public:
     AttackHit(Hit regularHit, int unmodifiedDamage, Hit selfHit, int unmodifiedSelfDamage):
         regularHit(regularHit), selfHit(selfHit), unmodifiedDamage(unmodifiedDamage), unmodifiedSelfDamage(unmodifiedSelfDamage)
     {}
+
+    AttackHit() = default;
 };
 
 
@@ -209,93 +220,91 @@ public:
 class Attack
 {
 public:
-    StatusEffect procs;
-    int procChances; // Percent
+    vector<StatusEffect> procs;
+    vector<int> procChances; // Percent
     int damage;
     int damageRand;
-    StatusEffect selfProcs;
-    int selfProcChances; // Percent
+    vector<StatusEffect> selfProcs;
+    vector<int> selfProcChances; // Percent
     int selfDamage;
     int selfDamageRand;
     int length;
     int timeSinceStart;
     string name;
-    void* summons;
-    uint summonCount;
+    vector<void*> summons;
 
-    Attack(StatusEffect procs, int procChances, int damage, int damageRand,
-        StatusEffect selfProcs, int selfProcChances, int selfDamage, int selfDamageRand,
-        void* summons, uint summonCount, int length, int name)
-    {
-        this->procs = procs;
-        this->procChances = procChances;
-        this->damage = damage;
-        this->damageRand = damageRand;
-        this->selfProcs = selfProcs;
-        this->selfProcChances = selfProcChances;
-        this->selfDamage = selfDamage;
-        this->selfDamageRand = selfDamageRand;
-        this->summons = summons;
-        this->summonCount = summonCount;
-        this->length = length;
-        this->name = name;
-        this->timeSinceStart = 0;
-    }
+    Attack(vector<StatusEffect> procs, vector<int> procChances, int damage, int damageRand,
+        vector<StatusEffect> selfProcs, vector<int> selfProcChances, int selfDamage, int selfDamageRand,
+        vector<void*> summons, int length, string name):
+        procs(procs), procChances(procChances), damage(damage), damageRand(damageRand), selfProcs(selfProcs),
+        selfProcChances(selfProcChances), selfDamage(selfDamage), selfDamageRand(selfDamageRand), summons(summons),
+        length(length), name(name), timeSinceStart(0)
+    { }
 
     Attack() = default;
 
     AttackHit RollDamage(int currentIndex, int damageReduction)
     {
-        List<
-            for i in range(len(self.procs)) :
-                if random.randint(1, 100) <= self.procChances[i] :
-                    inflictions.append(self.procs[i])
-                    selfInflictions = []
-                    for i in range(len(self.selfProcs)) :
-                        if random.randint(1, 100) <= self.selfProcChances[i] :
-                            selfInflictions.append(self.selfProcs[i])
-
-                            unModifiedDamage = max(0, random.randint(self.damage - self.damageRand, self.damage + self.damageRand))
-                            unModifiedSelfDamage = max(0, random.randint(self.selfDamage - self.selfDamageRand, self.selfDamage + self.selfDamageRand))
-                            return Hit(max(0, unModifiedDamage - damageReduction), inflictions, currentIndex), unModifiedDamage, \
-                            Hit(max(0, unModifiedSelfDamage - damageReduction), selfInflictions, currentIndex), unModifiedSelfDamage
+        list<StatusEffect> inflictions = list<StatusEffect>();
+        for (int i = 0; i < this->procs.size(); i++)
+        {
+            if (rand() % 100 + 1 <= this->procChances[i])
+            {
+                inflictions.push_back(this->procs[i]);
+            }
+        }
+        list<StatusEffect> selfInflictions = list<StatusEffect>();
+        for (int i = 0; i < this->selfProcs.size(); i++)
+        {
+            if (rand() % 100 + 1 <= this->selfProcChances[i])
+            {
+                selfInflictions.push_back(this->selfProcs[i]);
+            }
+        }
+        
+        int unModifiedDamage = fmaxf(0, RandRange(this->damage - this->damageRand, this->damage + this->damageRand));
+        int unModifiedSelfDamage = fmaxf(0, RandRange(this->selfDamage - this->selfDamageRand, this->selfDamage + this->selfDamageRand));
+        return AttackHit(Hit(fmaxf(0, unModifiedDamage - damageReduction), inflictions, currentIndex), unModifiedDamage,
+            Hit(fmaxf(0, unModifiedSelfDamage - damageReduction), selfInflictions, currentIndex), unModifiedSelfDamage);
     }
 };
 
 
 
-                    class Enemy :
-                inflictions: StatusEffect
-                    inflictionAttackers : int
-                    health : int
-                    maxHealth : int
-                    activeAttack : int
-                    attacks : Attack
-                    name : str
-                    leech : float
-                    summoned : bool
+class Enemy
+{
+public:
+    StatusEffect inflictions;
+    int inflictionAttackers;
+    int health;
+    int maxHealth;
+    int activeAttack;
+    Attack attacks;
+    string name;
+    float leech;
+    bool summoned;
 
-                    def __init__(self, health : int, maxHealth : int, attacks : Attack, name : str, leech : float) :
-                    self.inflictions = []
-                    self.inflictionAttackers = []
-                    self.health = health
-                    self.maxHealth = maxHealth
-                    self.activeAttack = 0
-                    self.attacks = deepcopy(attacks)
-                    self.name = name
-                    self.leech = leech
-                    self.summoned = False
+    Enemy(int health, int maxHealth, Attack attacks, string name, float leech) :
+    self.inflictions = []
+    self.inflictionAttackers = []
+    self.health = health
+    self.maxHealth = maxHealth
+    self.activeAttack = 0
+    self.attacks = deepcopy(attacks)
+    self.name = name
+    self.leech = leech
+    self.summoned = False
 
-                    def CurrentAttack(self) :
-                    return self.attacks[self.activeAttack]
+    def CurrentAttack(self) :
+    return self.attacks[self.activeAttack]
 
-                    def FindNewAttack(self) :
-                    self.attacks[self.activeAttack].timeSinceStart = 0
-                    self.activeAttack = random.randint(0, len(self.attacks) - 1)
-                    self.attacks[self.activeAttack].timeSinceStart = 1
-                    if self.CurrentAttack().length - self.CurrentAttack().timeSinceStart > 0:
+    def FindNewAttack(self) :
+    self.attacks[self.activeAttack].timeSinceStart = 0
+    self.activeAttack = random.randint(0, len(self.attacks) - 1)
+    self.attacks[self.activeAttack].timeSinceStart = 1
+    if self.CurrentAttack().length - self.CurrentAttack().timeSinceStart > 0:
 print(self.name + " starts preparing " + self.CurrentAttack().name + " It'll be done in " + str(self.CurrentAttack().length - self.CurrentAttack().timeSinceStart + 1) + " turns.")
-                    else:
+    else:
 print(self.name + " starts preparing " + self.CurrentAttack().name + " It'll be done next turn.")
 
 def FindDamageReduction(self) :
@@ -409,6 +418,7 @@ elif reduction < 0 :
             if infliction.effect.effect == InflictionType.STUN :
                 return True
                 return False
+};
 
 
 
