@@ -18,11 +18,9 @@ sleep_until(system_clock::now() + seconds(1));
 #include <stdlib.h>     // srand, rand
 #include <time.h>       // time(NULL)
 #include <string> // for string class
-#include <list> // For list class.
-#include <vector> // For vectors which are essentially halfway between lists and arrays.
+#include <vector> // For vector class.
 
 using std::string;
-using std::list;
 using std::vector;
 
 typedef unsigned int uint;
@@ -78,7 +76,7 @@ public:
 
     int FindDamage()
     {
-        switch (this->effect)
+        switch (effect)
         {
         case POISON:
             return 2;
@@ -95,7 +93,7 @@ public:
 
     int DeathDamage()
     {
-        switch (this->effect)
+        switch (effect)
         {
         case POISON:
             return 2;
@@ -112,7 +110,7 @@ public:
 
     int FindDamageReduction()
     {
-        switch (this->effect)
+        switch (effect)
         {
         case WET:
             return 15;
@@ -125,7 +123,7 @@ public:
 
     string FindName()
     {
-        switch (this->effect)
+        switch (effect)
         {
         case POISON:
             return "poison";
@@ -164,23 +162,23 @@ public:
 
     int Update()
     {
-        this->durationLeft -= 1;
-        if (this->durationLeft <= 0)
+        durationLeft -= 1;
+        if (durationLeft <= 0)
         {
-            this->shouldBeDestroyed = true;
-            return this->effect.DeathDamage();
+            shouldBeDestroyed = true;
+            return effect.DeathDamage();
         }
-        return this->effect.FindDamage();
+        return effect.FindDamage();
     }
 
     int Reduction()
     {
-        return this->effect.FindDamageReduction();
+        return effect.FindDamageReduction();
     }
 
     string Name()
     {
-        return this->effect.FindName();
+        return effect.FindName();
     }
 };
 
@@ -190,10 +188,10 @@ class Hit
 {
 public:
     int damage;
-    list<StatusEffect> inflictions;
+    vector<StatusEffect> inflictions;
     int attacker;
 
-    Hit(int damage, list<StatusEffect> inflictions, int attacker):
+    Hit(int damage, vector<StatusEffect> inflictions, int attacker):
         damage(damage), inflictions(inflictions), attacker(attacker)
     {}
 
@@ -205,11 +203,11 @@ public:
 class AttackHit
 {
 public:
-    Hit regularHit, selfHit;
+    Hit hit, selfHit;
     int unmodifiedDamage, unmodifiedSelfDamage;
     
-    AttackHit(Hit regularHit, int unmodifiedDamage, Hit selfHit, int unmodifiedSelfDamage):
-        regularHit(regularHit), selfHit(selfHit), unmodifiedDamage(unmodifiedDamage), unmodifiedSelfDamage(unmodifiedSelfDamage)
+    AttackHit(Hit hit, int unmodifiedDamage, Hit selfHit, int unmodifiedSelfDamage):
+        hit(hit), selfHit(selfHit), unmodifiedDamage(unmodifiedDamage), unmodifiedSelfDamage(unmodifiedSelfDamage)
     {}
 
     AttackHit() = default;
@@ -235,7 +233,7 @@ public:
 
     Attack(vector<StatusEffect> procs, vector<int> procChances, int damage, int damageRand,
         vector<StatusEffect> selfProcs, vector<int> selfProcChances, int selfDamage, int selfDamageRand,
-        vector<void*> summons, int length, string name):
+        vector<void*> summons, int length, string name) :
         procs(procs), procChances(procChances), damage(damage), damageRand(damageRand), selfProcs(selfProcs),
         selfProcChances(selfProcChances), selfDamage(selfDamage), selfDamageRand(selfDamageRand), summons(summons),
         length(length), name(name), timeSinceStart(0)
@@ -245,25 +243,25 @@ public:
 
     AttackHit RollDamage(int currentIndex, int damageReduction)
     {
-        list<StatusEffect> inflictions = list<StatusEffect>();
-        for (int i = 0; i < this->procs.size(); i++)
+        vector<StatusEffect> inflictions = vector<StatusEffect>();
+        for (int i = 0; i < procs.size(); i++)
         {
-            if (rand() % 100 + 1 <= this->procChances[i])
+            if (rand() % 100 + 1 <= procChances[i])
             {
-                inflictions.push_back(this->procs[i]);
+                inflictions.push_back(procs[i]);
             }
         }
-        list<StatusEffect> selfInflictions = list<StatusEffect>();
-        for (int i = 0; i < this->selfProcs.size(); i++)
+        vector<StatusEffect> selfInflictions = vector<StatusEffect>();
+        for (int i = 0; i < selfProcs.size(); i++)
         {
-            if (rand() % 100 + 1 <= this->selfProcChances[i])
+            if (rand() % 100 + 1 <= selfProcChances[i])
             {
-                selfInflictions.push_back(this->selfProcs[i]);
+                selfInflictions.push_back(selfProcs[i]);
             }
         }
-        
-        int unModifiedDamage = fmaxf(0, RandRange(this->damage - this->damageRand, this->damage + this->damageRand));
-        int unModifiedSelfDamage = fmaxf(0, RandRange(this->selfDamage - this->selfDamageRand, this->selfDamage + this->selfDamageRand));
+
+        int unModifiedDamage = fmaxf(0, RandRange(damage - damageRand, damage + damageRand));
+        int unModifiedSelfDamage = fmaxf(0, RandRange(selfDamage - selfDamageRand, selfDamage + selfDamageRand));
         return AttackHit(Hit(fmaxf(0, unModifiedDamage - damageReduction), inflictions, currentIndex), unModifiedDamage,
             Hit(fmaxf(0, unModifiedSelfDamage - damageReduction), selfInflictions, currentIndex), unModifiedSelfDamage);
     }
@@ -271,72 +269,100 @@ public:
 
 
 
+class TurnReturn
+{
+public:
+    Hit hit;
+    vector<void*> summons;
+
+    TurnReturn(Hit hit, vector<void*> summons) :
+        hit(hit), summons(summons)
+    { }
+
+    TurnReturn() = default;
+};
+
+
+
 class Enemy
 {
 public:
-    StatusEffect inflictions;
-    int inflictionAttackers;
+    vector<StatusEffect> inflictions;
+    vector<int> inflictionAttackers;
     int health;
     int maxHealth;
     int activeAttack;
-    Attack attacks;
+    vector<Attack> attacks;
     string name;
     float leech;
     bool summoned;
 
-    Enemy(int health, int maxHealth, Attack attacks, string name, float leech) :
-    self.inflictions = []
-    self.inflictionAttackers = []
-    self.health = health
-    self.maxHealth = maxHealth
-    self.activeAttack = 0
-    self.attacks = deepcopy(attacks)
-    self.name = name
-    self.leech = leech
-    self.summoned = False
+    Enemy(int health, int maxHealth, vector<Attack> attacks, string name, float leech) :
+        inflictions(vector<StatusEffect>()), inflictionAttackers(vector<int>()),
+        health(health), maxHealth(maxHealth), activeAttack(0),
+        attacks(attacks), name(name), leech(leech), summoned(false)
+    { }
 
-    def CurrentAttack(self) :
-    return self.attacks[self.activeAttack]
+    Enemy() = default;
 
-    def FindNewAttack(self) :
-    self.attacks[self.activeAttack].timeSinceStart = 0
-    self.activeAttack = random.randint(0, len(self.attacks) - 1)
-    self.attacks[self.activeAttack].timeSinceStart = 1
-    if self.CurrentAttack().length - self.CurrentAttack().timeSinceStart > 0:
-print(self.name + " starts preparing " + self.CurrentAttack().name + " It'll be done in " + str(self.CurrentAttack().length - self.CurrentAttack().timeSinceStart + 1) + " turns.")
-    else:
-print(self.name + " starts preparing " + self.CurrentAttack().name + " It'll be done next turn.")
+    Attack* CurrentAttack()
+    {
+        return &attacks[activeAttack];
+    }
 
-def FindDamageReduction(self) :
-    damageReduction = 0
-    for infliction in self.inflictions :
-        damageReduction += infliction.Reduction()
-        return damageReduction
+    void FindNewAttack()
+    {
 
-        def TakeTurn(self, currentIndex : int) :
-        hit : Hit
-        enemiesBorn = []
+        CurrentAttack()->timeSinceStart = 0;
+        activeAttack = RandRange(0, attacks.size() - 1);
+        CurrentAttack()->timeSinceStart = 1;
+        if (CurrentAttack()->length - CurrentAttack()->timeSinceStart > 0)
+            printf("%s starts preparing %s It'll be done in %i turns.", name, CurrentAttack()->name, CurrentAttack()->length - CurrentAttack()->timeSinceStart + 1);
+        else
+            printf("%s starts preparing %s It'll be done next turn.", name, CurrentAttack()->name);
+    }
 
-        if self.CurrentAttack().length <= self.CurrentAttack().timeSinceStart :
-            hit, unmodifiedDamage, selfHit, unmodifiedSelfDamage = self.CurrentAttack().RollDamage(currentIndex, self.FindDamageReduction())
-            enemiesBorn = deepcopy(self.CurrentAttack().summons)
-            if hit.damage != 0 or hit.inflictions != [] :
-                if unmodifiedDamage != hit.damage :
-                    print(self.name + " does " + self.CurrentAttack().name + ".\n\
-This attack deals " + str(hit.damage) + " damage. It would've done " + str(unmodifiedDamage) + " if it weren't for inflictions.")
-                else :
-                    print(self.name + " does " + self.CurrentAttack().name + ".\n\
-This attack deals " + str(hit.damage) + " damage.")
-for infliction in hit.inflictions :
-    print("This attack inflicts " + infliction.Name() + " for " + str(infliction.durationLeft) + " turns.")
-            else:
-if unmodifiedDamage > 0:
-print(self.name + " does " + self.CurrentAttack().name + ".\n" + \
-    self.name + " misses, but it would've done " + str(unmodifiedDamage) + " if it weren't for inflictions.")
-    elif self.CurrentAttack().damage != 0 or self.CurrentAttack().damageRand != 0 :
-    print(self.name + " does " + self.CurrentAttack().name + ".\n" + \
-        self.name + " misses.")
-# else maybe print something.
+    int FindDamageReduction()
+    {
+        int damageReduction = 0;
+        for(int i = 0; i < inflictions.size(); i++)
+            damageReduction += inflictions[i].Reduction();
+        return damageReduction;
+    }
+
+    TurnReturn TakeTurn(int currentIndex)
+    {
+        //Hit hit; // REMOVE
+        vector<void*> enemiesBorn = vector<void*>();
+
+        Attack* currentAttack = CurrentAttack();
+
+        if (currentAttack->length <= currentAttack->timeSinceStart)
+        {
+            AttackHit attackHit = currentAttack->RollDamage(currentIndex, FindDamageReduction());
+            enemiesBorn = currentAttack->summons;
+            if (attackHit.hit.damage != 0 || attackHit.hit.inflictions.size() != 0)
+            {
+                if (attackHit.unmodifiedDamage != attackHit.hit.damage)
+                {
+                    printf("%s does %s. This attack deals %i damage. It would've done %i if it weren't for inflictions.",
+                        name, currentAttack->name, attackHit.hit.damage, attackHit.unmodifiedDamage);
+                }
+                else
+                {
+                    printf("%s does %s. This attack deals %i damage.",
+                        name, currentAttack->name, attackHit.hit.damage);
+                }
+                for (StatusEffect statusEffect : attackHit.hit.inflictions)
+                    printf("This attack inflicts %s for %i turns.", statusEffect.Name(), statusEffect.durationLeft);
+            }
+            else
+            {
+                if (attackHit.unmodifiedDamage > 0)
+                    printf("%s does %s. %s misses, but it would've done %i if it weren't for inflictions.", name, currentAttack->name, name, attackHit.unmodifiedDamage);
+                else if (currentAttack->damage != 0 || currentAttack->damageRand != 0)
+                    printf("%s does %s. %s misses.", name, currentAttack->name, name);
+            }
 
 if selfHit.damage != 0 or selfHit.inflictions != [] :
     healOrDeal = "deals " + str(selfHit.damage) + " damage to"
@@ -354,7 +380,7 @@ for infliction in selfHit.inflictions :
     self.ApplyHit(selfHit)
 
     self.FindNewAttack()
-
+        }
 
     else:
 hit = Hit(0, [], currentIndex)
@@ -418,6 +444,7 @@ elif reduction < 0 :
             if infliction.effect.effect == InflictionType.STUN :
                 return True
                 return False
+    }
 };
 
 
@@ -751,7 +778,7 @@ while not nextVerse :
                 break
                 while enteredCode == False :
                     code = input("Enter (or type 'go back to page' if you need to check again): ")
-                    if list(code) == finalCode :
+                    if vector(code) == finalCode :
                         enteredCode = True
                         print("You got it!")
                         nextPage = True
@@ -1704,7 +1731,7 @@ in the past war. You give her your condolences, and the rest of the dinner is sp
 a letter slipped under the carpet, which reveals that Olivia also aims to slay the dragon. Hearing some noise behind you, you see Olivia standing in the \n\
 doorway, dagger in hand, and asks in a serious voice:'Well, now that you know, are you with me, or against me?'")
 print("Of course, you say you're with her, and then proceed to tell her all about why you've come to the castle anyways. \n\
-With Olivia listening intently, you curiously ask her why everyone acts so strange around town to newcomers, and then Olivia responds eagerly:'Joshro's \n\
+With Olivia vectorening intently, you curiously ask her why everyone acts so strange around town to newcomers, and then Olivia responds eagerly:'Joshro's \n\
 goons have threatened the villagers with execution so much that no one dares to step out of line, even to help poor but handsome souls like yourself.' \n\
 Taking in this information, as well as Olivia's flirting, you realize that you're going to have to be much more careful so as not to attract any \n\
 unwanted attention. The conversation ends, and you go to sleep swiftly.")
@@ -1899,7 +1926,7 @@ print("The sorcerer rubs his crystal ball, and reveals that......")
 print(" ")
 if len(emptyStr) == 6:
 print("You were a pacifist! The sorcerer smiles and delights in the fact that you appreciate life, no matter if it's a troll, a human, or even a measly rat.")
-print("The sorcerer points out that throughout your successful attempts at being peaceful, a letter was added to a growing list of seemingly random letters, but in actuality, \n\
+print("The sorcerer points out that throughout your successful attempts at being peaceful, a letter was added to a growing vector of seemingly random letters, but in actuality, \n\
 they add up to be the scrambled version of a six letter word. The only hint the sorcerer gives you is that the word is a part of what makes up cloth shirts, and also warns you that you \n\
 only have three chances to guess the word... \n\
 you crack your knuckles and massage your forehead in preparation for the mind-numbing task ahead...")
@@ -2031,7 +2058,7 @@ concerning my code, Jordan and Corbin, without hesitation, always came to my aid
 Albert Einstein-like brains, a substantial portion of this game would not be possible:)")
 time.sleep(currentSettings.sleepTime)
 print(" ")
-print("Ok because there are a bunch of other people on my list that deserve paragraphs of their own, but also because I don't want this game to be like a million lines of code, I'm going to sum up the other people very quickly:")
+print("Ok because there are a bunch of other people on my vector that deserve paragraphs of their own, but also because I don't want this game to be like a million lines of code, I'm going to sum up the other people very quickly:")
 time.sleep(currentSettings.sleepTime)
 print("MICHELLE, for being supportive of my interest in coding even through tough times:)")
 time.sleep(currentSettings.sleepTime)
