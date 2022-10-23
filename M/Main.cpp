@@ -282,6 +282,20 @@ public:
     TurnReturn() = default;
 };
 
+class InflictionResults
+{
+public:
+    vector<int> originalAttackers;
+    vector<int> damageFromSources;
+    vector<string> names;
+
+    InflictionResults(vector<int> originalAttackers, vector<int> damageFromSources, vector<string> names) :
+        originalAttackers(originalAttackers), damageFromSources(damageFromSources), names(names)
+    { }
+
+    InflictionResults() = default;
+};
+
 
 
 class Enemy
@@ -325,7 +339,7 @@ public:
     int FindDamageReduction()
     {
         int damageReduction = 0;
-        for(int i = 0; i < inflictions.size(); i++)
+        for (int i = 0; i < inflictions.size(); i++)
             damageReduction += inflictions[i].Reduction();
         return damageReduction;
     }
@@ -333,14 +347,16 @@ public:
     TurnReturn TakeTurn(int currentIndex)
     {
         //Hit hit; // REMOVE
-        vector<void*> enemiesBorn = vector<void*>();
+        vector<void*> newSummons = vector<void*>();
 
         Attack* currentAttack = CurrentAttack();
 
         if (currentAttack->length <= currentAttack->timeSinceStart)
         {
             AttackHit attackHit = currentAttack->RollDamage(currentIndex, FindDamageReduction());
-            enemiesBorn = currentAttack->summons;
+            newSummons = currentAttack->summons;
+
+            // Enemy hit.
             if (attackHit.hit.damage != 0 || attackHit.hit.inflictions.size() != 0)
             {
                 if (attackHit.unmodifiedDamage != attackHit.hit.damage)
@@ -364,87 +380,112 @@ public:
                     printf("%s does %s. %s misses.", name, currentAttack->name, name);
             }
 
-if selfHit.damage != 0 or selfHit.inflictions != [] :
-    healOrDeal = "deals " + str(selfHit.damage) + " damage to"
-    if selfHit.damage < 0 :
-        healOrDeal = "heals for " + str(-selfHit.damage) + " health points on"
+            // Self hit:
+            if (attackHit.hit.damage != 0 || attackHit.hit.inflictions.size() != 0)
+            {
+                if (attackHit.unmodifiedDamage != attackHit.hit.damage)
+                {
+                    printf("%s does %s. This attack deals %i damage. It would've done %i if it weren't for inflictions.",
+                        name, currentAttack->name, attackHit.hit.damage, attackHit.unmodifiedDamage);
+                }
+                else
+                {
+                    printf("%s does %s. This attack deals %i damage.",
+                        name, currentAttack->name, attackHit.hit.damage);
+                }
+                for (StatusEffect statusEffect : attackHit.hit.inflictions)
+                    printf("This attack inflicts %s for %i turns.", statusEffect.Name(), statusEffect.durationLeft);
+            }
+            else
+            {
+                if (attackHit.unmodifiedDamage > 0)
+                    printf("%s does %s. %s misses, but it would've done %i if it weren't for inflictions.", name, currentAttack->name, name, attackHit.unmodifiedDamage);
+                else if (currentAttack->damage != 0 || currentAttack->damageRand != 0)
+                    printf("%s does %s. %s misses.", name, currentAttack->name, name);
+            }
+            ApplyHit(attackHit.selfHit);
 
-        if unmodifiedSelfDamage != selfHit.damage :
-            print(self.name + " does " + self.CurrentAttack().name + ".\n\
-This attack " + healOrDeal + " themselve. It would've done " + str(unmodifiedSelfDamage) + " if it weren't for inflictions.")
-        else:
-print(self.name + " does " + self.CurrentAttack().name + ".\n\
-This attack " + healOrDeal + " themselve.")
-for infliction in selfHit.inflictions :
-    print("This attack inflicts " + infliction.Name() + " on themselve for " + str(infliction.durationLeft) + " turns.")
-    self.ApplyHit(selfHit)
-
-    self.FindNewAttack()
+            FindNewAttack();
+            return TurnReturn(attackHit.hit, newSummons);
+        }
+        else
+        {
+            if (currentAttack->length - currentAttack->timeSinceStart > 1)
+                printf("%s continues to prepare their %s. They have %i turns left.", name, currentAttack->name, currentAttack->length - currentAttack->timeSinceStart);
+            else
+                printf("%s continues to prepare their %s. They will be done next turn.", name, currentAttack->name);
+            currentAttack->timeSinceStart += 1;
         }
 
-    else:
-hit = Hit(0, [], currentIndex)
-if self.CurrentAttack().length - self.CurrentAttack().timeSinceStart > 1:
-print(self.name + " continues to prepare their " + self.CurrentAttack().name + ". They have " + str(self.CurrentAttack().length - self.CurrentAttack().timeSinceStart) + " turns left.")
-else :
-    print(self.name + " continues to prepare their " + self.CurrentAttack().name + ". They will be done next turn.")
-    self.attacks[self.activeAttack].timeSinceStart += 1
-
-    return hit, enemiesBorn
-
-    def ApplyHit(self, hit : Hit) :
-    self.health -= hit.damage
-    self.inflictions.extend(deepcopy(hit.inflictions))
-    self.inflictionAttackers.extend([hit.attacker] * len(hit.inflictions))
-
-    def UpdateInflictions(self) :
-    destroyedThisFrame = 0
-
-    damageFromSources = [0] * len(self.inflictionAttackers)
-
-    respectiveNames = [""] * len(self.inflictionAttackers)
-    for i in range(len(self.inflictions)) :
-        respectiveNames[i] = self.inflictions[i].Name()
-
-        orinalInflictionAttackers = deepcopy(self.inflictionAttackers)
-
-        for i in range(len(self.inflictions)) :
-            damage = self.inflictions[i - destroyedThisFrame].Update()
-            self.health -= damage
-            damageFromSources[i] += damage
-
-            if self.inflictions[i - destroyedThisFrame].shouldBeDestroyed :
-                if damage > 0:
-print(self.name + "'s " + self.inflictions[i - destroyedThisFrame].Name() + " infliction has been destroyed but it did " + str(damage) + " damage this turn.")
-                else :
-                    print(self.name + "'s " + self.inflictions[i - destroyedThisFrame].Name() + " infliction has been destroyed and did no damage this turn.")
-                    del self.inflictions[i - destroyedThisFrame]
-                    del self.inflictionAttackers[i - destroyedThisFrame]
-                    destroyedThisFrame += 1
-            else:
-damageThisTurn = ""
-reductionThisTurn = ""
-durationThisTurn = "It'll be gone next turn."
-if damage > 0:
-damageThisTurn = "It did " + str(damage) + " damage this turn.\n"
-reduction = self.inflictions[i - destroyedThisFrame].Reduction()
-if reduction > 0:
-reductionThisTurn = "It will reduce physical attacks by " + str(reduction) + ".\n"
-elif reduction < 0 :
-    reductionThisTurn = "It will increase physical attacks by " + str(-reduction) + ".\n"
-    duration = self.inflictions[i - destroyedThisFrame].durationLeft
-    if duration > 1 :
-        durationThisTurn = "It'll be gone in " + str(duration) + " turns."
-        print(self.name + " is inflicted with " + self.inflictions[i - destroyedThisFrame].Name() + ".\n" + damageThisTurn + reductionThisTurn + durationThisTurn)
-
-        return orinalInflictionAttackers, damageFromSources, respectiveNames
-
-        def IsStunned(self) :
-        for infliction in self.inflictions :
-            if infliction.effect.effect == InflictionType.STUN :
-                return True
-                return False
     }
+
+    void ApplyHit(Hit hit)
+    {
+        health -= hit.damage;
+
+        inflictions.reserve(inflictions.size() + hit.inflictions.size());
+        inflictions.insert(inflictions.end(), hit.inflictions.begin(), hit.inflictions.end());
+
+        inflictionAttackers.reserve(inflictionAttackers.size() + hit.inflictions.size());
+        inflictionAttackers.insert(inflictionAttackers.end(), hit.inflictions.size(), hit.attacker);
+    }
+
+    InflictionResults UpdateInflictions()
+    {
+        int destroyedThisFrame = 0;
+
+        vector<int> orinalInflictionAttackers(inflictionAttackers);
+
+        vector<int> damageFromSources(0);
+        damageFromSources.insert(damageFromSources.end(), inflictionAttackers.size(), 0);
+
+        vector<string> respectiveNames(0);
+        respectiveNames.insert(respectiveNames.end(), inflictionAttackers.size(), "");
+
+        for (int i = 0; i < inflictions.size(); i++)
+        {
+            respectiveNames[i] = inflictions[i].Name();
+
+                for i in range(len(self.inflictions)) :
+                    damage = self.inflictions[i - destroyedThisFrame].Update()
+                    self.health -= damage
+                    damageFromSources[i] += damage
+
+                    if self.inflictions[i - destroyedThisFrame].shouldBeDestroyed :
+                        if damage > 0:
+            print(self.name + "'s " + self.inflictions[i - destroyedThisFrame].Name() + " infliction has been destroyed but it did " + str(damage) + " damage this turn.")
+                        else :
+                            print(self.name + "'s " + self.inflictions[i - destroyedThisFrame].Name() + " infliction has been destroyed and did no damage this turn.")
+                            del self.inflictions[i - destroyedThisFrame]
+                            del self.inflictionAttackers[i - destroyedThisFrame]
+                            destroyedThisFrame += 1
+                    else:
+            damageThisTurn = ""
+                reductionThisTurn = ""
+                durationThisTurn = "It'll be gone next turn."
+                if damage > 0:
+            damageThisTurn = "It did " + str(damage) + " damage this turn.\n"
+                reduction = self.inflictions[i - destroyedThisFrame].Reduction()
+                if reduction > 0:
+            reductionThisTurn = "It will reduce physical attacks by " + str(reduction) + ".\n"
+                elif reduction < 0 :
+                reductionThisTurn = "It will increase physical attacks by " + str(-reduction) + ".\n"
+                duration = self.inflictions[i - destroyedThisFrame].durationLeft
+                if duration > 1 :
+                    durationThisTurn = "It'll be gone in " + str(duration) + " turns."
+                    print(self.name + " is inflicted with " + self.inflictions[i - destroyedThisFrame].Name() + ".\n" + damageThisTurn + reductionThisTurn + durationThisTurn)
+        }
+        return orinalInflictionAttackers, damageFromSources, respectiveNames;
+    }
+
+    bool IsStunned()
+    {
+        for (int i = 0; i < inflictions.size(); i++)
+            if (inflictions[i].effect.effect == STUN)
+                return true;
+        return false;
+    }
+
 };
 
 
