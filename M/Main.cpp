@@ -19,9 +19,12 @@ sleep_until(system_clock::now() + seconds(1));
 #include <time.h>       // time(NULL)
 #include <string> // for string class
 #include <vector> // For vector class.
+#include <iostream> // For cin and cout.
 
 using std::string;
 using std::vector;
+using std::to_string;
+using std::cin;
 
 typedef unsigned int uint;
 
@@ -445,37 +448,35 @@ public:
         for (int i = 0; i < inflictions.size(); i++)
         {
             respectiveNames[i] = inflictions[i].Name();
-
-                for i in range(len(self.inflictions)) :
-                    damage = self.inflictions[i - destroyedThisFrame].Update()
-                    self.health -= damage
-                    damageFromSources[i] += damage
-
-                    if self.inflictions[i - destroyedThisFrame].shouldBeDestroyed :
-                        if damage > 0:
-            print(self.name + "'s " + self.inflictions[i - destroyedThisFrame].Name() + " infliction has been destroyed but it did " + str(damage) + " damage this turn.")
-                        else :
-                            print(self.name + "'s " + self.inflictions[i - destroyedThisFrame].Name() + " infliction has been destroyed and did no damage this turn.")
-                            del self.inflictions[i - destroyedThisFrame]
-                            del self.inflictionAttackers[i - destroyedThisFrame]
-                            destroyedThisFrame += 1
-                    else:
-            damageThisTurn = ""
-                reductionThisTurn = ""
-                durationThisTurn = "It'll be gone next turn."
-                if damage > 0:
-            damageThisTurn = "It did " + str(damage) + " damage this turn.\n"
-                reduction = self.inflictions[i - destroyedThisFrame].Reduction()
-                if reduction > 0:
-            reductionThisTurn = "It will reduce physical attacks by " + str(reduction) + ".\n"
-                elif reduction < 0 :
-                reductionThisTurn = "It will increase physical attacks by " + str(-reduction) + ".\n"
-                duration = self.inflictions[i - destroyedThisFrame].durationLeft
-                if duration > 1 :
-                    durationThisTurn = "It'll be gone in " + str(duration) + " turns."
-                    print(self.name + " is inflicted with " + self.inflictions[i - destroyedThisFrame].Name() + ".\n" + damageThisTurn + reductionThisTurn + durationThisTurn)
         }
-        return orinalInflictionAttackers, damageFromSources, respectiveNames;
+
+        for (int i = 0; i < inflictions.size(); i++)
+        {
+            int damage = inflictions[i - destroyedThisFrame].Update();
+            health -= damage;
+            damageFromSources[i] += damage;
+
+            if (inflictions[i - destroyedThisFrame].shouldBeDestroyed)
+            {
+                if (damage > 0)
+                    printf("%s's %s infliction has been destroyed but it did %i damage this turn.", name, inflictions[i - destroyedThisFrame].Name(), damage);
+                else
+                    printf("%s's %s infliction has been destroyed no damage this turn.", name, inflictions[i - destroyedThisFrame].Name());
+                inflictions.erase(inflictions.begin() + i - destroyedThisFrame);
+                inflictionAttackers.erase(inflictionAttackers.begin() + i - destroyedThisFrame);
+                destroyedThisFrame += 1;
+            }
+            else
+            {
+                int reduction = inflictions[i - destroyedThisFrame].Reduction();
+                int duration = inflictions[i - destroyedThisFrame].durationLeft;
+                printf("%s is inflicted with %s. It did %s damage this turn. %s. %s",
+                    name, inflictions[i - destroyedThisFrame].Name(), damage > 0 ? to_string(damage) : "no",
+                    reduction != 0 ? (reduction > 0 ? "It will reduce physical attacks by " + to_string(reduction) : "It will increase physical attacks by " + to_string(-reduction)) : "",
+                    duration > 1 ? "It'll be done in " + to_string(duration) + " turns" : "It'll be done next turn");
+            }
+        }
+        return InflictionResults(orinalInflictionAttackers, damageFromSources, respectiveNames);
     }
 
     bool IsStunned()
@@ -490,251 +491,323 @@ public:
 
 
 
-                class Weapon :
-            activeAttack: int
-                attacks : Attack
-                name : str
-                leech : float
-
-                def __init__(self, attacks : Attack, name : str, leech : float) :
-                self.activeAttack = 0
-                self.attacks = deepcopy(attacks)
-                self.name = name
-                self.leech = leech
-
-                def CurrentAttack(self) :
-                return self.attacks[self.activeAttack]
-
-                def ChangeAttackTo(self, newAttack : int) :
-                self.attacks[self.activeAttack].timeSinceStart = 0
-                self.activeAttack = newAttack
-                self.attacks[self.activeAttack].timeSinceStart = 1
-                if self.CurrentAttack().length - self.CurrentAttack().timeSinceStart > 0:
-print("Max starts preparing " + self.CurrentAttack().name + " It'll be done in " + str(self.CurrentAttack().length - self.CurrentAttack().timeSinceStart + 1) + " turns.")
-                else:
-print("Max starts preparing " + self.CurrentAttack().name + " It'll be done next turn.")
-
-def SwitchAttacks(self, startingText : str, nevermindable : bool) :
-    turnDialogue = startingText + "'" + self.attacks[0].name + "' "
-    for attack in range(len(self.attacks) - 1) :
-        turnDialogue += "or '" + self.attacks[attack + 1].name + "' "
-
-        if nevermindable :
-            turnDialogue += " or 'nevermind'? "
-
-            prompt = input(turnDialogue)
-
-            inputedAttack = 0
-
-            badInput = True
-
-            if prompt == "nevermind" and nevermindable:
-badInput = False
-inputedAttack = self.activeAttack
-
-for currentAttack in range(len(self.attacks)) :
-    if prompt == self.attacks[currentAttack].name :
-        badInput = False
-        inputedAttack = currentAttack
-
-        while badInput :
-            prompt = input("That won't work this time! Do you want to " + turnDialogue)
-            badInput = ((prompt != "nevermind") or (not nevermindable))
-            for currentAttack in range(len(self.attacks)) :
-                if prompt == self.attacks[currentAttack].name :
-                    badInput = False
-                    inputedAttack = currentAttack
-
-                    self.ChangeAttackTo(inputedAttack)
-
-                    def LearnAttack(self, attack : Attack) :
-                    self.attacks.append(attack)
-
-                    def KnowsAttack(self, name : str) :
-                    for attack in self.attacks :
-                        if attack.name == name :
-                            return True
-                            return False
-
-
-
-                            class Player :
-                        inflictions: StatusEffect
-                            inflictionAttackers : int
-                            maxHealth : int # More like Max'S health, am I right!...
-                            currentHealth : int
-                            weapon : Weapon
-                            currentDeathMessage : str
-
-                            def __init__(self, maxHealth : int) :
-                            self.inflictions = []
-                            self.inflictionAttackers = []
-                            self.maxHealth = maxHealth
-                            self.currentHealth = maxHealth
-                            self.currentDeathMessage = "NULL DEATH MESSAGE"
-
-                            def FindDamageReduction(self) :
-                            damageReduction = 0
-                            for infliction in self.inflictions :
-                                damageReduction += infliction.Reduction()
-                                return damageReduction
-
-                                def TakeTurn(self) :
-                                hit : Hit
-
-                                if self.weapon.CurrentAttack().length <= self.weapon.CurrentAttack().timeSinceStart :
-                                    hit, unmodifiedDamage, selfHit, unmodifiedSelfDamage = self.weapon.CurrentAttack().RollDamage(0, self.FindDamageReduction())
-                                    if hit.damage != 0 or hit.inflictions != [] :
-                                        if unmodifiedDamage != hit.damage :
-                                            print("Max uses their " + self.weapon.name + " and does " + self.weapon.CurrentAttack().name + ".\n\
-This attack deals " + str(hit.damage) + " damage. It would've done " + str(unmodifiedDamage) + " if it weren't for inflictions.")
-                                        else :
-                                            print("Max uses their " + self.weapon.name + " and does " + self.weapon.CurrentAttack().name + ".\n\
-This attack deals " + str(hit.damage) + " damage.")
-for infliction in hit.inflictions :
-    print("This attack inflicts " + infliction.Name() + " for " + str(infliction.durationLeft) + " turns.")
-                                    else:
-if unmodifiedDamage > 0:
-print("Max's " + self.weapon.name + " misses, but it would've done " + str(unmodifiedDamage) + " if it weren't for inflictions.")
-else :
-    print("Max's " + self.weapon.name + " misses.")
-
-    self.weapon.attacks[self.weapon.activeAttack].timeSinceStart = 0
-
-    if selfHit.damage != 0 or selfHit.inflictions != [] :
-        healOrDeal = "deals " + str(selfHit.damage) + " damage to"
-        if selfHit.damage < 0 :
-            healOrDeal = "heals for " + str(-selfHit.damage) + " health points on"
-
-            if unmodifiedSelfDamage != selfHit.damage :
-                print("Max does " + self.CurrentAttack().name + ".\n\
-This attack " + healOrDeal + " themselve. It would've done " + str(unmodifiedSelfDamage) + " if it weren't for inflictions.")
-            else:
-print("Max does " + self.CurrentAttack().name + ".\n\
-This attack " + healOrDeal + " themselve.")
-for infliction in selfHit.inflictions :
-    print("This attack inflicts " + infliction.Name() + " on themselve for " + str(infliction.durationLeft) + " turns.")
-    self.ApplyHit(selfHit)
-
-
-        else:
-hit = Hit(0, [], 0)
-if self.weapon.CurrentAttack().length - self.weapon.CurrentAttack().timeSinceStart > 1:
-print("Max continues to prepare their " + self.weapon.name + "'s " + self.weapon.CurrentAttack().name + ". They have " + str(self.weapon.CurrentAttack().length - self.weapon.CurrentAttack().timeSinceStart) + " turns left.")
-else :
-    print("Max continues to prepare their " + self.weapon.name + "'s " + self.weapon.CurrentAttack().name + ". They will be done next turn.")
-
-    self.weapon.attacks[self.weapon.activeAttack].timeSinceStart += 1
-
-    return hit
-
-    def ApplyHit(self, hit : Hit, dodged : bool) :
-    self.currentHealth -= hit.damage
-    for infliction in deepcopy(hit.inflictions) :
-        if infliction.effect.effect != InflictionType.STUN or not dodged :
-            self.inflictions.append(infliction)
-        else :
-            halfTimeInfliction = infliction
-            halfTimeInfliction.durationLeft = int(floor(float(halfTimeInfliction.durationLeft) / 2))
-            self.inflictions.append(halfTimeInfliction)
-            print("Because you blocked get stunned for half as long. Which is in this case " + str(halfTimeInfliction.durationLeft) + " turn.")
-            self.inflictionAttackers.extend([hit.attacker] * len(hit.inflictions))
-
-            def UpdateInflictions(self) :
-            destroyedThisFrame = 0
-
-            damageFromSources = [0] * len(self.inflictionAttackers)
-
-            respectiveNames = [""] * len(self.inflictionAttackers)
-            for i in range(len(self.inflictions)) :
-                respectiveNames[i] = self.inflictions[i].Name()
-
-                orinalInflictionAttackers = deepcopy(self.inflictionAttackers)
-
-                for i in range(len(self.inflictions)) :
-                    damage = self.inflictions[i - destroyedThisFrame].Update()
-                    self.currentHealth -= damage
-                    damageFromSources[i] += damage
-
-                    if self.inflictions[i - destroyedThisFrame].shouldBeDestroyed :
-                        if damage > 0:
-print("Your " + self.inflictions[i - destroyedThisFrame].Name() + " infliction has been destroyed but it did " + str(damage) + " damage this turn.")
-                        else :
-                            print("Your " + self.inflictions[i - destroyedThisFrame].Name() + " infliction has been destroyed and did no damage this turn.")
-                            del self.inflictions[i - destroyedThisFrame]
-                            del self.inflictionAttackers[i - destroyedThisFrame]
-                            destroyedThisFrame += 1
-
-                    else:
-damageThisTurn = ""
-reductionThisTurn = ""
-durationThisTurn = "It'll be gone next turn."
-if damage > 0:
-damageThisTurn = "It did " + str(damage) + " damage this turn.\n"
-reduction = self.inflictions[i - destroyedThisFrame].Reduction()
-if reduction > 0:
-reductionThisTurn = "It will reduce physical attacks by " + str(reduction) + ".\n"
-elif reduction < 0 :
-    reductionThisTurn = "It will increase physical attacks by " + str(-reduction) + ".\n"
-    duration = self.inflictions[i - destroyedThisFrame].durationLeft
-    if duration > 1 :
-        durationThisTurn = "It'll be gone in " + str(duration) + " turns."
-        print("Max is inflicted with " + self.inflictions[i - destroyedThisFrame].Name() + ".\n" + damageThisTurn + reductionThisTurn + durationThisTurn)
-
-        return orinalInflictionAttackers, damageFromSources, respectiveNames
-
-        def IsStunned(self) :
-        for infliction in self.inflictions :
-            if infliction.effect.effect == InflictionType.STUN :
-                return True
-                return False
-
-
-
-                class Settings :
-            sleepTime: int
-
-                def __init__(self, sleepTime : int) :
-                self.sleepTime = sleepTime
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                def FindSettings() :
-                global currentSettings
-                prompt = input("How many seconds do you want to wait after key events('default' = 1) ")
-                goodInput = prompt.isnumeric()
-                if goodInput :
-                    goodInput = int(prompt) >= 0
-                    goodInput |= prompt == "default"
-                    while not goodInput :
-                        prompt = input("It has to be a number or 'default'. How many seconds do you want to wait after key events('default' = 1) ")
-                        goodInput = prompt.isnumeric()
-                        if goodInput :
-                            goodInput = int(prompt) >= 0
-                            goodInput |= prompt == "default"
-                            if prompt == "default" :
-                                currentSettings = Settings(1)
-                            else :
-                                currentSettings = Settings(int(prompt))
+class Weapon
+{
+public:
+    int activeAttack;
+    vector<Attack> attacks;
+    string name;
+    float leech;
+
+    Weapon(vector<Attack> attacks, string name, float leech):
+        activeAttack(0), attacks(attacks), name(name), leech(leech)
+    { }
+
+    Weapon() = default;
+
+    Attack* CurrentAttack()
+    {
+        return &attacks[activeAttack];
+    }
+
+    void ChangeAttackTo(int newAttack)
+    {
+        attacks[activeAttack].timeSinceStart = 0;
+        activeAttack = newAttack;
+            attacks[activeAttack].timeSinceStart = 1;
+            if (CurrentAttack()->length - CurrentAttack()->timeSinceStart > 0)
+                printf("Max starts preparing %s It'll be done in %i turns.", CurrentAttack()->name, CurrentAttack()->length - CurrentAttack()->timeSinceStart + 1);
+            else
+                printf("Max starts preparing %s It'll be done next turn.", CurrentAttack()->name);
+    }
+
+    void SwitchAttacks(string startingText, bool nevermindable)
+    {
+        string turnDialogue = startingText + "'" + attacks[0].name + "' ";
+        for (int i = 0; i < attacks.size() - 1; i++)
+
+            turnDialogue += "or '" + attacks[i + 1].name + "' ";
+
+        if (nevermindable)
+            turnDialogue += " or 'nevermind'? ";
+
+        string prompt;
+        printf("%s", turnDialogue);
+        cin >> prompt;
+
+        int inputedAttack = activeAttack;
+
+        bool badInput = true;
+
+        badInput = not(prompt == "nevermind" and nevermindable);
+
+        for (int i = 0; i < attacks.size(); i++)
+            if (prompt == attacks[i].name)
+            {
+                badInput = false;
+                inputedAttack = i;
+            }
+
+        while (badInput)
+        {
+            printf("That won't work this time! Do you want to %s", turnDialogue);
+            cin >> prompt;
+
+            badInput = not(prompt == "nevermind" and nevermindable);
+
+            for (int i = 0; i < attacks.size(); i++)
+                if (prompt == attacks[i].name)
+                {
+                    badInput = false;
+                    inputedAttack = i;
+                }
+        }
+
+        ChangeAttackTo(inputedAttack);
+    }
+
+    void LearnAttack(Attack attack)
+    {
+        attacks.push_back(attack);
+    }
+
+    bool KnowsAttack(string name)
+    {
+        for (Attack attack : attacks)
+            if(attack.name == name)
+                return true;
+        return false;
+    }
+};
+
+
+
+class Player
+{
+public:
+    vector<StatusEffect> inflictions;
+    vector<int> inflictionAttackers;
+    int maxHealth;
+    int health;
+    Weapon weapon;
+    string currentDeathMessage;
+    string name = "Max";
+
+    Player(int maxHealth):
+        inflictions(0), inflictionAttackers(0), maxHealth(maxHealth), health(maxHealth), currentDeathMessage("NULL DEATH MESSAGE")
+    { }
+
+    Player() = default;
+
+    int FindDamageReduction()
+    {
+        int damageReduction = 0;
+        for (StatusEffect infliction : inflictions)
+            damageReduction += infliction.Reduction();
+        return damageReduction;
+    }
+
+    Attack* CurrentAttack()
+    {
+        return weapon.CurrentAttack();
+    }
+
+    TurnReturn TakeTurn(int currentIndex)
+    {
+        //Hit hit; // REMOVE
+        vector<void*> newSummons = vector<void*>();
+
+        Attack* currentAttack = CurrentAttack();
+
+        if (currentAttack->length <= currentAttack->timeSinceStart)
+        {
+            AttackHit attackHit = currentAttack->RollDamage(currentIndex, FindDamageReduction());
+            newSummons = currentAttack->summons;
+
+            // Enemy hit.
+            if (attackHit.hit.damage != 0 || attackHit.hit.inflictions.size() != 0)
+            {
+                if (attackHit.unmodifiedDamage != attackHit.hit.damage)
+                {
+                    printf("%s does %s. This attack deals %i damage. It would've done %i if it weren't for inflictions.",
+                        name, currentAttack->name, attackHit.hit.damage, attackHit.unmodifiedDamage);
+                }
+                else
+                {
+                    printf("%s does %s. This attack deals %i damage.",
+                        name, currentAttack->name, attackHit.hit.damage);
+                }
+                for (StatusEffect statusEffect : attackHit.hit.inflictions)
+                    printf("This attack inflicts %s for %i turns.", statusEffect.Name(), statusEffect.durationLeft);
+            }
+            else
+            {
+                if (attackHit.unmodifiedDamage > 0)
+                    printf("%s does %s. %s misses, but it would've done %i if it weren't for inflictions.", name, currentAttack->name, name, attackHit.unmodifiedDamage);
+                else if (currentAttack->damage != 0 || currentAttack->damageRand != 0)
+                    printf("%s does %s. %s misses.", name, currentAttack->name, name);
+            }
+
+            // Self hit:
+            if (attackHit.hit.damage != 0 || attackHit.hit.inflictions.size() != 0)
+            {
+                if (attackHit.unmodifiedDamage != attackHit.hit.damage)
+                {
+                    printf("%s does %s. This attack deals %i damage. It would've done %i if it weren't for inflictions.",
+                        name, currentAttack->name, attackHit.hit.damage, attackHit.unmodifiedDamage);
+                }
+                else
+                {
+                    printf("%s does %s. This attack deals %i damage.",
+                        name, currentAttack->name, attackHit.hit.damage);
+                }
+                for (StatusEffect statusEffect : attackHit.hit.inflictions)
+                    printf("This attack inflicts %s for %i turns.", statusEffect.Name(), statusEffect.durationLeft);
+            }
+            else
+            {
+                if (attackHit.unmodifiedDamage > 0)
+                    printf("%s does %s. %s misses, but it would've done %i if it weren't for inflictions.", name, currentAttack->name, name, attackHit.unmodifiedDamage);
+                else if (currentAttack->damage != 0 || currentAttack->damageRand != 0)
+                    printf("%s does %s. %s misses.", name, currentAttack->name, name);
+            }
+            ApplyHit(attackHit.selfHit);
+
+            FindNewAttack();
+            return TurnReturn(attackHit.hit, newSummons);
+        }
+        else
+        {
+            if (currentAttack->length - currentAttack->timeSinceStart > 1)
+                printf("%s continues to prepare their %s. They have %i turns left.", name, currentAttack->name, currentAttack->length - currentAttack->timeSinceStart);
+            else
+                printf("%s continues to prepare their %s. They will be done next turn.", name, currentAttack->name);
+            currentAttack->timeSinceStart += 1;
+        }
+
+    }
+
+    void ApplyHit(Hit hit)
+    {
+        health -= hit.damage;
+
+        inflictions.reserve(inflictions.size() + hit.inflictions.size());
+        inflictions.insert(inflictions.end(), hit.inflictions.begin(), hit.inflictions.end());
+
+        inflictionAttackers.reserve(inflictionAttackers.size() + hit.inflictions.size());
+        inflictionAttackers.insert(inflictionAttackers.end(), hit.inflictions.size(), hit.attacker);
+    }
+
+    InflictionResults UpdateInflictions()
+    {
+        int destroyedThisFrame = 0;
+
+        vector<int> orinalInflictionAttackers(inflictionAttackers);
+
+        vector<int> damageFromSources(0);
+        damageFromSources.insert(damageFromSources.end(), inflictionAttackers.size(), 0);
+
+        vector<string> respectiveNames(0);
+        respectiveNames.insert(respectiveNames.end(), inflictionAttackers.size(), "");
+
+        for (int i = 0; i < inflictions.size(); i++)
+        {
+            respectiveNames[i] = inflictions[i].Name();
+        }
+
+        for (int i = 0; i < inflictions.size(); i++)
+        {
+            int damage = inflictions[i - destroyedThisFrame].Update();
+            health -= damage;
+            damageFromSources[i] += damage;
+
+            if (inflictions[i - destroyedThisFrame].shouldBeDestroyed)
+            {
+                if (damage > 0)
+                    printf("%s's %s infliction has been destroyed but it did %i damage this turn.", name, inflictions[i - destroyedThisFrame].Name(), damage);
+                else
+                    printf("%s's %s infliction has been destroyed no damage this turn.", name, inflictions[i - destroyedThisFrame].Name());
+                inflictions.erase(inflictions.begin() + i - destroyedThisFrame);
+                inflictionAttackers.erase(inflictionAttackers.begin() + i - destroyedThisFrame);
+                destroyedThisFrame += 1;
+            }
+            else
+            {
+                int reduction = inflictions[i - destroyedThisFrame].Reduction();
+                int duration = inflictions[i - destroyedThisFrame].durationLeft;
+                printf("%s is inflicted with %s. It did %s damage this turn. %s. %s",
+                    name, inflictions[i - destroyedThisFrame].Name(), damage > 0 ? to_string(damage) : "no",
+                    reduction != 0 ? (reduction > 0 ? "It will reduce physical attacks by " + to_string(reduction) : "It will increase physical attacks by " + to_string(-reduction)) : "",
+                    duration > 1 ? "It'll be done in " + to_string(duration) + " turns" : "It'll be done next turn");
+            }
+        }
+        return InflictionResults(orinalInflictionAttackers, damageFromSources, respectiveNames);
+    }
+
+    bool IsStunned()
+    {
+        for (int i = 0; i < inflictions.size(); i++)
+            if (inflictions[i].effect.effect == STUN)
+                return true;
+        return false;
+    }
+};
+
+
+
+class Settings
+{
+public:
+    int sleepTime;
+
+    Settings(int sleepTime):
+        sleepTime(sleepTime)
+    { }
+    
+    Settings() = default;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void FindSettings()
+{
+    printf("How many seconds do you want to wait after key events('default' = 1) ");
+    string prompt;
+    cin >> prompt;
+        goodInput = prompt.isnumeric()
+        if goodInput :
+    goodInput = int(prompt) >= 0
+        goodInput |= prompt == "default"
+        while not goodInput :
+            prompt = input("It has to be a number or 'default'. How many seconds do you want to wait after key events('default' = 1) ")
+            goodInput = prompt.isnumeric()
+            if goodInput :
+                goodInput = int(prompt) >= 0
+                goodInput |= prompt == "default"
+                if prompt == "default" :
+                    currentSettings = Settings(1)
+                else :
+                    currentSettings = Settings(int(prompt))
+}
 
 
 
