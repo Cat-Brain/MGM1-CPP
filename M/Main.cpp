@@ -25,6 +25,8 @@ using std::string;
 using std::vector;
 using std::to_string;
 using std::cin;
+using std::isdigit;
+using std::stoi;
 
 typedef unsigned int uint;
 
@@ -34,6 +36,12 @@ int RandRange(int min, int max)
     return (rand() % (max - min)) + min;
 }
 
+bool IsNumber(const string& s)
+{
+    string::const_iterator it = s.begin();
+    while (it != s.end() && isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
 
 
 
@@ -284,6 +292,8 @@ public:
 
     TurnReturn() = default;
 };
+
+
 
 class InflictionResults
 {
@@ -673,7 +683,7 @@ public:
             }
             ApplyHit(attackHit.selfHit);
 
-            FindNewAttack();
+            //weapon.FindNewAttack();
             return TurnReturn(attackHit.hit, newSummons);
         }
         else
@@ -783,6 +793,78 @@ public:
 
 
 
+//Variables:
+
+bool restart = true;
+bool specialFightEnding = false;
+vector<Enemy> specialFightEndingMonsters(0);
+Settings currentSettings;
+
+//Constant variables:
+//Ignore this bit of typedeffing, it's just to make some stuff faster:
+typedef vector<StatusEffect> vS;
+typedef vector<int> vI;
+typedef vector<void*> vV;
+typedef vector<Attack> vA;
+
+//Attacks
+//The syntax for a status effect is :
+//StatusEffect(InflictionType.YOURINFLICTION, how long you want it to last)
+//The syntax for an attacks is :
+//Attack([Status effects], [chance of each status effect happening], damage, damage randomness(how far from the original value the actual value can be), [self inflictions], [self infliction procs], self damage, self damage randomness, [summons], turns to do, name)
+//First up is the attacks that are required to be early.
+Attack fireBreath = Attack(vS{ StatusEffect(BURNING, 2) }, vI{ 100 }, 0, 0, vS{}, vI{}, 0, 0, vVP{}, 3, "fire breath");
+Attack heavyBite = Attack(vS{}, vI{}, 50, 0, vS{}, vI{}, 0, 0, vVP{}, 4, "heavy bite");
+//Enemies that must be declared early.
+Enemy joshroHead = Enemy(25, 50, [fireBreath, heavyBite], "Joshro Head", 0.5);
+//Normal attacks.
+Attack clubBash = Attack([StatusEffect(STUN, 2)], [100], 25, 10, vS{}, vI{}, 0, 0, [], 3, "club bash");
+Attack punch = Attack(vS{}, vI{}, 15, 15, vS{}, vI{}, 0, 0, [], 1, "punch");
+Attack heavyPunch = Attack([StatusEffect(STUN, 2)], [75], 25, 25, vS{}, vI{}, 0, 0, [], 2, "heavy punch");
+Attack quickStab = Attack([StatusEffect(POISON, 3)], [50], 5, 5, vS{}, vI{}, 0, 0, [], 1, "quick stab");
+Attack rockThrow = Attack([StatusEffect(STUN, 1)], [25], 5, 5, vS{}, vI{}, 0, 0, [], 1, "rock throw");
+Attack slimeHug = Attack([StatusEffect(DEADLY_HUG, 3)], [100], 0, 0, vS{}, vI{}, 0, 0, [], 1, "slime hug");
+Attack slimeSpike = Attack([StatusEffect(BLEED, 3)], [100], 5, 0, vS{}, vI{}, 0, 0, [], 1, "slime spike");
+Attack arrowShoot = Attack([StatusEffect(BURNING, 3), StatusEffect(POISON, 8)], [100, 100], 35, 10, vS{}, vI{}, 0, 0, [], 3, "shoot arrow");
+Attack chokeHold = Attack([StatusEffect(STUN, 1)], [75], 5, 5, vS{}, vI{}, 0, 0, [], 1, "choke hold");
+Attack deepCut = Attack([StatusEffect(BLEED, 15), StatusEffect(BLEED, 15), StatusEffect(BLEED, 15)], [100, 50, 25], 0, 0, vS{}, vI{}, 0, 0, [], 1, "deep cut");
+Attack finisher = Attack(vS{}, vI{}, 20, 0, vS{}, vI{}, 0, 0, [], 1, "finisher");
+Attack heavyBlow = Attack(vS{}, vI{}, 100, 0, vS{}, vI{}, 0, 0, [], 5, "heavy blow");
+Attack quickAttack = Attack(vS{}, vI{}, 35, 0, vS{}, vI{}, 0, 0, [], 2, "quick attack");
+Attack heaviestBlow = Attack(vS{}, vI{}, 125, 0, vS{}, vI{}, 0, 0, [], 6, "heaviest blow");
+Attack splash = Attack([StatusEffect(WET, 5)], [100], 3, 3, vS{}, vI{}, 0, 0, [], 1, "splash");
+Attack quickClubBash = Attack([StatusEffect(STUN, 2)], [75], 10, 10, vS{}, vI{}, 0, 0, [], 2, "quick club bash");
+Attack bite = Attack([StatusEffect(POISON, 4), StatusEffect(BLEED, 4)], [5, 5], 5, 5, vS{}, vI{}, 0, 0, [], 2, "bite");
+Attack scratch = Attack([StatusEffect(BLEED, 4)], [25], 15, 5, vS{}, vI{}, 0, 0, [], 1, "scratch");
+Attack spare = Attack(vS{}, vI{}, 0, 0, vS{}, vI{}, 0, 0, [], 1, "spare");
+Attack growHead = Attack(vS{}, vI{}, 0, 0, vS{}, vI{}, 0, 0, vVP{joshroHead}, 2, "grow head");
+Attack ultraFireBreath = Attack([StatusEffect(BURNING, 3)], [100], 0, 0, vS{}, vI{}, 0, 0, [], 1, "ultra fire breath");
+
+//The syntax for enemies is :
+//Enemy(start health, max health, [attack1, attack2, ...], "name", leech amount 0 to 1 work best
+Enemy joshrosBody = Enemy(300, 300, [growHead], "Joshro's Body", 0.0);
+Enemy ogre = Enemy(100, 100, [clubBash, punch], "Ogre", 0.0);
+Enemy goblin = Enemy(100, 100, [quickStab, rockThrow], "Goblin", 0.0);
+Enemy slime = Enemy(25, 50, [slimeHug], "Pet Slime", 1.0);
+Enemy troll = Enemy(125, 125, [quickClubBash, splash], "troll", 0.0);
+Enemy mutant = Enemy(200, 200, [punch, heavyPunch], "mutant", 0.0);
+Enemy rat = Enemy(100, 200, [bite, scratch], "Rat", 0.25);
+Enemy babyRat = Enemy(25, 50, [bite, scratch, splash], "Baby Rat", 0.5);
+Enemy guard = Enemy(200, 200, [heavyBlow, quickAttack], "Unloyal Guard", 0.0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -793,51 +875,59 @@ void FindSettings()
     printf("How many seconds do you want to wait after key events('default' = 1) ");
     string prompt;
     cin >> prompt;
-        goodInput = prompt.isnumeric()
-        if goodInput :
-    goodInput = int(prompt) >= 0
-        goodInput |= prompt == "default"
-        while not goodInput :
-            prompt = input("It has to be a number or 'default'. How many seconds do you want to wait after key events('default' = 1) ")
-            goodInput = prompt.isnumeric()
-            if goodInput :
-                goodInput = int(prompt) >= 0
-                goodInput |= prompt == "default"
-                if prompt == "default" :
-                    currentSettings = Settings(1)
-                else :
-                    currentSettings = Settings(int(prompt))
+    bool goodInput = IsNumber(prompt);
+    if (goodInput)
+        goodInput =  stoi(prompt) >= 0;
+    goodInput |= prompt == "default";
+    while (not goodInput)
+    {
+        printf("It has to be a number or 'default'. How many seconds do you want to wait after key events('default' = 1) ");
+        cin >> prompt;
+        bool goodInput = IsNumber(prompt);
+        if (goodInput)
+            goodInput = stoi(prompt) >= 0;
+        goodInput |= prompt == "default";
+    }
+    if (prompt == "default")
+        currentSettings = Settings(1);
+    else
+        currentSettings = Settings(stoi(prompt));
 }
 
 
 
 
-                                def weaponSelect() :
-                                global player
+void weaponSelect()
+{
+    string weaponChoice;
+    printf("Do you take a 'bow', 'axe', or 'sword'?: ");
+    cin >> weaponChoice;
+    while (weaponChoice != "bow" and weaponChoice != "axe" and weaponChoice != "sword" and weaponChoice != "ogre in a bottle")
+    {
+        printf("That weapon isn't here! Do you take a 'bow', 'axe', or 'sword'?: ");
+        cin >> weaponChoice;
+    }
 
-                                weaponChoice = input("Do you take a 'bow', 'axe', or 'sword'?: ")
-                                while weaponChoice != "bow" and weaponChoice != "axe" and weaponChoice != "sword" and weaponChoice != "ogre in a bottle" :
-                                    weaponChoice = input("That weapon isn't here! Do you take a 'bow', 'axe', or 'sword'?: ")
-
-                                    if weaponChoice == "bow" :
-                                        player.weapon = Weapon([arrowShoot, chokeHold], "Bow", 0.0)
-                                        print("A standard bow.\n\
+    if (weaponChoice == "bow")
+        player.weapon = Weapon(vector<Attack>{arrowShoot, chokeHold}, "Bow", 0.0);
+            print("A standard bow.\n\
 It's a slow weapon that stays inside of enemies and damages them over time.\n\
 Good if you want to forget about some foes, but bad at finishing things within a timely manor.")
 
 
 elif weaponChoice == "axe":
-player.weapon = Weapon([deepCut, finisher], "Axe", 0.0)
-print("A pair of small battle axes.\n\
+    player.weapon = Weapon([deepCut, finisher], "Axe", 0.0)
+        print("A pair of small battle axes.\n\
 They're quick weapons that do damage over time, and accumulate their damage instead of giving it to you upfront\n\
 good at single target and very small targets, but bad against leech and quick fights.")
 elif weaponChoice == "sword" :
     player.weapon = Weapon([heavyBlow, quickAttack], "Sword", 0.0)
-    print("A steel longsword.\n\
+        print("A steel longsword.\n\
 It does high damage, but does all of it's damage upfront but does enough damage to one shot most foes, good at big foes, but bad at small ones and long fights.")
 elif weaponChoice == "ogre in a bottle" :
     player.weapon = Weapon([clubBash, punch], "Ogre in a Bottle", 0.5)
-    print("BONK")
+        print("BONK")
+}
 
 
 
