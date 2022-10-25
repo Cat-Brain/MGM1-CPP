@@ -804,6 +804,9 @@ bool restart = true;
 bool specialFightEnding = false;
 vector<Enemy> specialFightEndingMonsters(0);
 Settings currentSettings;
+char strings[6]{ 's', 't', 'r', 'i', 'n', 'g' };
+vector<char> currentStrings(0);
+int divByFour[6]{ 8, 12, 16, 20, 24, 28 };
 
 //Constant variables:
 //Ignore this bit of typedeffing, it's just to make some stuff faster:
@@ -861,6 +864,10 @@ Weapon bow = Weapon(vA{ arrowShoot, chokeHold }, "Bow", 0.0);
 Weapon axe = Weapon(vA{ deepCut, finisher }, "Axe", 0.0);
 Weapon sword = Weapon(vA{ heavyBlow, quickAttack }, "Sword", 0.0);
 Weapon ogreInABottle = Weapon(vA{ clubBash, punch }, "Ogre in a Bottle", 0.5);
+Weapon python = Weapon(vA{ heaviestBlow, quickAttack }, "Python", 0.5);
+
+
+Player player;
 
 
 
@@ -942,7 +949,7 @@ It does high damage, but does all of it's damage upfront but does enough damage 
 
 
 
-void end()
+void End()
 {
     restart = true;
     printf("You have been slain.\n%s\nPress 'enter' on your keyboard to start a new game. :)", player.currentDeathMessage);
@@ -1024,139 +1031,92 @@ to the local sewer entrance to search for the secret entrance to the fortress wh
 
 
 
-def randomNumtosolve(number) :
-    playerNum = 0
-                        while playerNum < number :
-                            printf(number)
-                            printf("^ NUMBER TO REACH ^")
-                            printf(playerNum)
-                            printf("^ YOUR CURRENT TOTAL ^")
-                            inputString = input("Choose a number that is less than 1/4 \n\
-of what the number is, and try to add up to the sum of it (keep in mind you'll have to add more numbers to this one): ")
-if inputString.isnumeric() :
-    numberGiven = int(inputString)
-else:
-continue
-while numberGiven >= number / 4 :
-    numberGiven = int(input("That won't work this time! Choose a number that is less than 1/4 \n\
-of what the number is, and try to add up to the sum of it (keep in mind you'll have to add more numbers to this one): "))
-printf(number)
-printf("^ NUMBER TO REACH ^")
-printf(playerNum)
-printf("^ YOUR CURRENT TOTAL ^")
-playerNum += numberGiven
-if playerNum > number:
-printf("You went over the number, and have to start over!")
-number = random.choice(divByfour)
-printf(number)
-playerNum = 0
-if playerNum == number :
-    printf("You did it! Good job!")
+void RandomNumtosolve()
+{
+    int number = divByFour[RandRange(0, 5)];
+    int playerNum = 0;
+    while (playerNum < number)
+    {
+        printf("%i", number);
+        printf("^ NUMBER TO REACH ^");
+        printf("%i", playerNum);
+        printf("^ YOUR CURRENT TOTAL ^");
+        string inputString = Input("Choose a number that is less than 1/4 \n\
+of what the number is, and try to add up to the sum of it (keep in mind you'll have to add more numbers to this one): ");
+        int numberGiven = number;
+        if (!IsNumber(inputString))
+        {
+            printf("That won't work this time! Must be a number!");
+            continue;
+        }
+
+        numberGiven = stoi(inputString);
+        if (numberGiven >= number / 4)
+        {
+            printf("That won't work this time! Must be under the number to reach divided by 4.");
+            continue;
+        }
+
+        playerNum += numberGiven;
+        if (playerNum > number)
+        {
+            printf("You went over the number, and have to start over!");
+            number = divByFour[RandRange(0, 5)];
+            playerNum = 0;
+        }
+            
+        if(playerNum == number)
+            printf("You did it! Good job!");
+    }
+}
 
 
 
 
-    def fightSequence(enemies : Enemy, spareable : bool, specialEnding : str) :
+/*void fightSequence(enemies : Enemy, spareable : bool, specialEnding : str)
+{
     global player, specialFightEnding, specialFightEndingMonsters
 
-    specialFightEnding = False
-    enemiesC = [] # The C in enemiesC stands for copy.
-    for enemy in enemies :
-enemiesC.append(deepcopy(enemy))
-fightOn = True
-fightFrameOne = True
-target = 0
+        specialFightEnding = False
+        enemiesC = [] # The C in enemiesC stands for copy.
+        for enemy in enemies :
+    enemiesC.append(deepcopy(enemy))
+        fightOn = True
+        fightFrameOne = True
+        target = 0
 
-while fightOn:
+        while fightOn:
 
-printf("")
-for enemy in enemiesC :
-printf(enemy.name + "'s health: " + str(enemy.health))
-printf("Max's health: ", player.currentHealth)
-printf("")
-
-if fightFrameOne :
-    fightFrameOne = False
-    for enemy in enemiesC :
-enemy.FindNewAttack()
-player.weapon.SwitchAttacks("Do you want to use ", False)
-
-
-dialogue = "'dodge' or 'attack' to continue your current attack or 'switch' your attack"
-if len(enemiesC) > 1:
-dialogue += " or 'change' targets from " + enemiesC[target].name
-dialogue += "? "
-prompt = input(dialogue)
-
-while prompt != "dodge" and prompt != "attack" and prompt != "switch" and (not (len(enemiesC) > 1 and prompt == "change")) :
-    prompt = input("That won't work this time! " + dialogue)
-
-
-    if prompt == "dodge" :
+    printf("")
+        for enemy in enemiesC :
+    printf(enemy.name + "'s health: " + str(enemy.health))
+        printf("Max's health: ", player.currentHealth)
         printf("")
-        stunned = player.IsStunned()
-        for i in range(len(enemiesC)) :
-            if not stunned or not player.IsStunned() :
-                unblockedDamage = 0
-                blockedDamage = 0
-                if not enemiesC[i].IsStunned() :
-                    enemyHit, enemiesBorn = enemiesC[i].TakeTurn(i)
-                    enemiesBornC = deepcopy(enemiesBorn)
-                    for i in range(len(enemiesBornC)) :
-                        enemiesBornC[i].summoned = True
-                        printf(enemiesC[i].name + " has birthed a new " + enemiesBornC[i].name + "!")
-                        enemiesC.extend(enemiesBornC)
-                        unblockedDamage += enemyHit.damage
-                        damageDelt = floor(enemyHit.damage / 2)
-                        blockedDamage += damageDelt
-                        heal = int(floor(float(damageDelt) * enemiesC[i].leech))
-                        if heal != 0:
-printf(enemiesC[i].name + " heal's off of you for " + str(heal) + ".")
-enemiesC[i].health = min(enemiesC[i].maxHealth * 2, enemiesC[i].health + heal)
-player.ApplyHit(Hit(damageDelt, enemyHit.inflictions, i), True)
-printf("You dodged the attack and took " + str(blockedDamage) + " damage instead of taking " + str(unblockedDamage) + " damage!")
-                        else:
-printf(enemiesC[i].name + " did not attack this round as they were stunned.")
-printf("")
 
-                else:
-if not enemiesC[i].IsStunned() :
-    enemyHit, enemiesBorn = enemiesC[i].TakeTurn(i)
-    enemiesBornC = deepcopy(enemiesBorn)
-    for i in range(len(enemiesBornC)) :
-        enemiesBornC[i].summoned = True
-        printf(enemiesC[i].name + " has birthed a new " + enemiesBornC[i].name + "!")
-        enemiesC.extend(enemiesBornC)
-        player.ApplyHit(enemyHit, False)
-        heal = int(floor(float(enemyHit.damage) * enemiesC[i].leech))
-        if heal != 0:
-printf(enemiesC[i].name + " heal's off of you for " + str(heal) + ".")
-enemiesC[damageDealer[i]].health = min(enemiesC[damageDealer[i]].maxHealth, enemiesC[damageDealer[i]].health + heal)
-printf("Becuase you were stunned you didn't block.\n")
-        else:
-printf(enemiesC[i].name + " did not attack this round as they were stunned.")
-printf("")
-
-for i in range(len(enemiesC)) :
-    ignored, inflictionDamageDelt, respectiveNames = enemiesC[i].UpdateInflictions()
-    for j in range(len(inflictionDamageDelt)) :
-        heal = int(floor(float(inflictionDamageDelt[j]) * player.weapon.leech))
-        if heal != 0 :
-            printf("You heal off of " + enemiesC[i].name + " for " + str(heal) + " because of " + respectiveNames[j] + ".")
-            player.currentHealth = min(player.maxHealth, player.currentHealth + heal)
-            printf("")
-
-            damageDealer, inflictionDamageDelt, respectiveNames = player.UpdateInflictions()
-            for i in range(len(damageDealer)) :
-                heal = int(floor(float(inflictionDamageDelt[i]) * enemiesC[damageDealer[i]].leech))
-                if heal != 0 :
-                    printf(enemiesC[damageDealer[i]].name + " heal's off of you for " + str(heal) + " because of " + respectiveNames[i] + ".")
-                    enemiesC[damageDealer[i]].health = min(enemiesC[damageDealer[i]].maxHealth, enemiesC[damageDealer[i]].health + heal)
+        if fightFrameOne :
+            fightFrameOne = False
+            for enemy in enemiesC :
+    enemy.FindNewAttack()
+        player.weapon.SwitchAttacks("Do you want to use ", False)
 
 
-                    elif prompt == "attack" :
-                    printf("")
-                    for i in range(len(enemiesC)) :
+        dialogue = "'dodge' or 'attack' to continue your current attack or 'switch' your attack"
+        if len(enemiesC) > 1:
+    dialogue += " or 'change' targets from " + enemiesC[target].name
+        dialogue += "? "
+        prompt = input(dialogue)
+
+        while prompt != "dodge" and prompt != "attack" and prompt != "switch" and (not (len(enemiesC) > 1 and prompt == "change")) :
+            prompt = Input("That won't work this time! " + dialogue)
+
+
+            if prompt == "dodge" :
+                printf("")
+                stunned = player.IsStunned()
+                for i in range(len(enemiesC)) :
+                    if not stunned or not player.IsStunned() :
+                        unblockedDamage = 0
+                        blockedDamage = 0
                         if not enemiesC[i].IsStunned() :
                             enemyHit, enemiesBorn = enemiesC[i].TakeTurn(i)
                             enemiesBornC = deepcopy(enemiesBorn)
@@ -1164,399 +1124,507 @@ for i in range(len(enemiesC)) :
                                 enemiesBornC[i].summoned = True
                                 printf(enemiesC[i].name + " has birthed a new " + enemiesBornC[i].name + "!")
                                 enemiesC.extend(enemiesBornC)
-                                player.ApplyHit(enemyHit, False)
-                                heal = int(floor(float(enemyHit.damage) * enemiesC[i].leech))
+                                unblockedDamage += enemyHit.damage
+                                damageDelt = floor(enemyHit.damage / 2)
+                                blockedDamage += damageDelt
+                                heal = int(floor(float(damageDelt) * enemiesC[i].leech))
                                 if heal != 0:
-printf(enemiesC[i].name + " heal's off of you for " + str(heal) + ".")
-enemiesC[i].health = min(enemiesC[i].maxHealth, enemiesC[i].health + heal)
+    printf(enemiesC[i].name + " heal's off of you for " + str(heal) + ".")
+        enemiesC[i].health = min(enemiesC[i].maxHealth * 2, enemiesC[i].health + heal)
+        player.ApplyHit(Hit(damageDelt, enemyHit.inflictions, i), True)
+        printf("You dodged the attack and took " + str(blockedDamage) + " damage instead of taking " + str(unblockedDamage) + " damage!")
                                 else:
-printf(enemiesC[i].name + " did not attack this round as they were stunned.")
-printf("")
+    printf(enemiesC[i].name + " did not attack this round as they were stunned.")
+        printf("")
 
-for i in range(len(enemiesC)) :
-    ignored, inflictionDamageDelt, respectiveNames = enemiesC[i].UpdateInflictions()
-    for j in range(len(inflictionDamageDelt)) :
-        heal = int(floor(float(inflictionDamageDelt[j]) * player.weapon.leech))
-        if heal != 0 :
-            printf("You heal off of " + enemiesC[i].name + " for " + str(heal) + " because of " + respectiveNames[j] + ".")
-            player.currentHealth = min(player.maxHealth, player.currentHealth + heal)
-            printf("")
-
-            if not player.IsStunned() :
-                if spareableand player.weapon.CurrentAttack().name == "spare" :
-                    spareSucceeds = random.randint(1, 3) == 3
-                    if spareSucceeds :
-                        printf("You attempt to spare and are successful!")
-                        specialFightEnding = True
-                        specialFightEndingMonsters = enemiesC
-                        fightOn = False
-                        break
-                        printf("You attempt to spare and are unsuccessful.")
-                        playerHit = player.TakeTurn()
-                        enemiesC[target].ApplyHit(playerHit)
-                        player.currentHealth = min(player.maxHealth, player.currentHealth + int(floor(float(playerHit.damage) * player.weapon.leech)))
-                        printf("")
-                    else:
-printf("Becuase you were stunned you didn't attack.\n")
-
-damageDealer, inflictionDamageDelt, respectiveNames = player.UpdateInflictions()
-for i in range(len(damageDealer)) :
-    heal = int(floor(float(inflictionDamageDelt[i]) * enemiesC[damageDealer[i]].leech))
-    if heal != 0 :
-        printf(enemiesC[damageDealer[i]].name + " heal's off of you for " + str(heal) + " because of " + respectiveNames[i] + ".")
+                        else:
+    if not enemiesC[i].IsStunned() :
+        enemyHit, enemiesBorn = enemiesC[i].TakeTurn(i)
+        enemiesBornC = deepcopy(enemiesBorn)
+        for i in range(len(enemiesBornC)) :
+            enemiesBornC[i].summoned = True
+            printf(enemiesC[i].name + " has birthed a new " + enemiesBornC[i].name + "!")
+            enemiesC.extend(enemiesBornC)
+            player.ApplyHit(enemyHit, False)
+            heal = int(floor(float(enemyHit.damage) * enemiesC[i].leech))
+            if heal != 0:
+    printf(enemiesC[i].name + " heal's off of you for " + str(heal) + ".")
         enemiesC[damageDealer[i]].health = min(enemiesC[damageDealer[i]].maxHealth, enemiesC[damageDealer[i]].health + heal)
+        printf("Becuase you were stunned you didn't block.\n")
+            else:
+    printf(enemiesC[i].name + " did not attack this round as they were stunned.")
+        printf("")
+
+        for i in range(len(enemiesC)) :
+            ignored, inflictionDamageDelt, respectiveNames = enemiesC[i].UpdateInflictions()
+            for j in range(len(inflictionDamageDelt)) :
+                heal = int(floor(float(inflictionDamageDelt[j]) * player.weapon.leech))
+                if heal != 0 :
+                    printf("You heal off of " + enemiesC[i].name + " for " + str(heal) + " because of " + respectiveNames[j] + ".")
+                    player.currentHealth = min(player.maxHealth, player.currentHealth + heal)
+                    printf("")
+
+                    damageDealer, inflictionDamageDelt, respectiveNames = player.UpdateInflictions()
+                    for i in range(len(damageDealer)) :
+                        heal = int(floor(float(inflictionDamageDelt[i]) * enemiesC[damageDealer[i]].leech))
+                        if heal != 0 :
+                            printf(enemiesC[damageDealer[i]].name + " heal's off of you for " + str(heal) + " because of " + respectiveNames[i] + ".")
+                            enemiesC[damageDealer[i]].health = min(enemiesC[damageDealer[i]].maxHealth, enemiesC[damageDealer[i]].health + heal)
 
 
-        elif prompt == "switch" :
-        player.weapon.SwitchAttacks("", True)
+                            elif prompt == "attack" :
+                            printf("")
+                            for i in range(len(enemiesC)) :
+                                if not enemiesC[i].IsStunned() :
+                                    enemyHit, enemiesBorn = enemiesC[i].TakeTurn(i)
+                                    enemiesBornC = deepcopy(enemiesBorn)
+                                    for i in range(len(enemiesBornC)) :
+                                        enemiesBornC[i].summoned = True
+                                        printf(enemiesC[i].name + " has birthed a new " + enemiesBornC[i].name + "!")
+                                        enemiesC.extend(enemiesBornC)
+                                        player.ApplyHit(enemyHit, False)
+                                        heal = int(floor(float(enemyHit.damage) * enemiesC[i].leech))
+                                        if heal != 0:
+    printf(enemiesC[i].name + " heal's off of you for " + str(heal) + ".")
+        enemiesC[i].health = min(enemiesC[i].maxHealth, enemiesC[i].health + heal)
+                                        else:
+    printf(enemiesC[i].name + " did not attack this round as they were stunned.")
+        printf("")
+
+        for i in range(len(enemiesC)) :
+            ignored, inflictionDamageDelt, respectiveNames = enemiesC[i].UpdateInflictions()
+            for j in range(len(inflictionDamageDelt)) :
+                heal = int(floor(float(inflictionDamageDelt[j]) * player.weapon.leech))
+                if heal != 0 :
+                    printf("You heal off of " + enemiesC[i].name + " for " + str(heal) + " because of " + respectiveNames[j] + ".")
+                    player.currentHealth = min(player.maxHealth, player.currentHealth + heal)
+                    printf("")
+
+                    if not player.IsStunned() :
+                        if spareableand player.weapon.CurrentAttack().name == "spare" :
+                            spareSucceeds = random.randint(1, 3) == 3
+                            if spareSucceeds :
+                                printf("You attempt to spare and are successful!")
+                                specialFightEnding = True
+                                specialFightEndingMonsters = enemiesC
+                                fightOn = False
+                                break
+                                printf("You attempt to spare and are unsuccessful.")
+                                playerHit = player.TakeTurn()
+                                enemiesC[target].ApplyHit(playerHit)
+                                player.currentHealth = min(player.maxHealth, player.currentHealth + int(floor(float(playerHit.damage) * player.weapon.leech)))
+                                printf("")
+                            else:
+    printf("Becuase you were stunned you didn't attack.\n")
+
+        damageDealer, inflictionDamageDelt, respectiveNames = player.UpdateInflictions()
+        for i in range(len(damageDealer)) :
+            heal = int(floor(float(inflictionDamageDelt[i]) * enemiesC[damageDealer[i]].leech))
+            if heal != 0 :
+                printf(enemiesC[damageDealer[i]].name + " heal's off of you for " + str(heal) + " because of " + respectiveNames[i] + ".")
+                enemiesC[damageDealer[i]].health = min(enemiesC[damageDealer[i]].maxHealth, enemiesC[damageDealer[i]].health + heal)
 
 
-    else:
-answer = 0
-while answer < 1 or answer > len(enemiesC) :
-    for i in range(len(enemiesC)) :
-        printf(enemiesC[i].name + " with " + str(enemiesC[i].health) + " health: '" + str(i + 1) + "', or")
-        tempAnswer = input("'nevermind'. ")
-        if tempAnswer.isnumeric() :
-            answer = int(tempAnswer)
-            elif tempAnswer == "nevermind" :
-            answer = target + 1
-            target = answer - 1
+                elif prompt == "switch" :
+                player.weapon.SwitchAttacks("", True)
 
 
-
-            fightOn = player.currentHealth > 0 and len(enemiesC) > 0
-            if not fightOn:
-break
-
-enemiesRemovedThisFrame = 0
-for i in range(len(enemiesC)) :
-    if enemiesC[i - enemiesRemovedThisFrame].health <= 0 :
-        printf(enemiesC[i - enemiesRemovedThisFrame].name + " has been defeated.")
-
-        if len(enemiesC) <= 1 :
-            printf("You won!")
-            fightOn = False
-            break
-
-            inflictionsRemovedThisFrame = 0
-            for j in range(len(player.inflictionAttackers)) :
-                if player.inflictionAttackers[j - inflictionsRemovedThisFrame] > i - enemiesRemovedThisFrame:
-player.inflictionAttackers[j - inflictionsRemovedThisFrame] -= 1
-elif player.inflictionAttackers[j - inflictionsRemovedThisFrame] == i - enemiesRemovedThisFrame :
-    printf(player.inflictions[j - inflictionsRemovedThisFrame].Name() + " has worn off.")
-    del(player.inflictionAttackers[j - inflictionsRemovedThisFrame])
-    del(player.inflictions[j - inflictionsRemovedThisFrame])
-    inflictionsRemovedThisFrame += 1
-    del(enemiesC[i - enemiesRemovedThisFrame])
-    enemiesRemovedThisFrame += 1
-    target = 0
-
-    enemyNames = [enemiesC[0].name]
-    combinedEnemyNames = enemiesC[0].name
-    for i in range(len(enemiesC) - 1) :
-        enemyNames.append(enemiesC[i + 1].name)
-        combinedEnemyNames += ", " + enemiesC[i + 1].name
-        for option in specialEnding :
-if option == enemyNames :
-    printableCombinedEnemyNames = enemiesC[0].name
-    if len(enemiesC) == 2 :
-        if enemiesC[0].name == enemiesC[1].name :
-            printableCombinedEnemyNames += "s"
-        else :
-            printableCombinedEnemyNames += " and the " + enemiesC[1].name
-    else:
-for i in range(len(enemiesC) - 2) :
-    printableCombinedEnemyNames += ", " + enemiesC[i + 1].name
-    printableCombinedEnemyNames += ", and the" + enemiesC[len(enemiesC) - 1].name
-
-    hasHave = " has"
-    if len(enemiesC) > 1:
-hasHave = " have"
-printf("The " + printableCombinedEnemyNames + hasHave + " chosen to stop fighting.")
-
-fightOn = False
-specialFightEnding = True
-specialFightEndingMonsters = enemiesC
-break
-
-allSummoned = True
-for enemy in enemiesC :
-allSummoned = allSummoned and enemy.summoned
-
-if allSummoned :
-    printableCombinedEnemyNames = enemiesC[0].name
-    if len(enemiesC) == 2 :
-        if enemiesC[0].name == enemiesC[1].name :
-            printableCombinedEnemyNames += "s"
-        else :
-            printableCombinedEnemyNames += " and the " + enemiesC[1].name
-            elif len(enemiesC) > 2:
-for i in range(len(enemiesC) - 2) :
-    printableCombinedEnemyNames += ", " + enemiesC[i + 1].name
-    printableCombinedEnemyNames += ", and the" + enemiesC[len(enemiesC) - 1].name
-
-    hasHave = " has"
-    if len(enemiesC) > 1:
-hasHave = " have"
-printf("The " + printableCombinedEnemyNames + hasHave + " chosen to stop fighting.")
-fightOn = False
-specialFightEnding = True
-specialFightEndingMonsters = enemiesC
-break
+            else:
+    answer = 0
+        while answer < 1 or answer > len(enemiesC) :
+            for i in range(len(enemiesC)) :
+                printf(enemiesC[i].name + " with " + str(enemiesC[i].health) + " health: '" + str(i + 1) + "', or")
+                tempAnswer = Input("'nevermind'. ")
+                if tempAnswer.isnumeric() :
+                    answer = int(tempAnswer)
+                    elif tempAnswer == "nevermind" :
+                    answer = target + 1
+                    target = answer - 1
 
 
 
+                    fightOn = player.currentHealth > 0 and len(enemiesC) > 0
+                    if not fightOn:
+    break
 
-if player.currentHealth <= 0:
-end()
-return
+        enemiesRemovedThisFrame = 0
+        for i in range(len(enemiesC)) :
+            if enemiesC[i - enemiesRemovedThisFrame].health <= 0 :
+                printf(enemiesC[i - enemiesRemovedThisFrame].name + " has been defeated.")
 
-player.inflictions.clear()
-player.inflictionAttackers.clear()
-player.currentHealth = min(player.maxHealth, player.currentHealth + 50)
-printf("You end the fight with " + str(player.currentHealth) + " health.")
+                if len(enemiesC) <= 1 :
+                    printf("You won!")
+                    fightOn = False
+                    break
+
+                    inflictionsRemovedThisFrame = 0
+                    for j in range(len(player.inflictionAttackers)) :
+                        if player.inflictionAttackers[j - inflictionsRemovedThisFrame] > i - enemiesRemovedThisFrame:
+    player.inflictionAttackers[j - inflictionsRemovedThisFrame] -= 1
+        elif player.inflictionAttackers[j - inflictionsRemovedThisFrame] == i - enemiesRemovedThisFrame :
+        printf(player.inflictions[j - inflictionsRemovedThisFrame].Name() + " has worn off.")
+        del(player.inflictionAttackers[j - inflictionsRemovedThisFrame])
+        del(player.inflictions[j - inflictionsRemovedThisFrame])
+        inflictionsRemovedThisFrame += 1
+        del(enemiesC[i - enemiesRemovedThisFrame])
+        enemiesRemovedThisFrame += 1
+        target = 0
+
+        enemyNames = [enemiesC[0].name]
+        combinedEnemyNames = enemiesC[0].name
+        for i in range(len(enemiesC) - 1) :
+            enemyNames.append(enemiesC[i + 1].name)
+            combinedEnemyNames += ", " + enemiesC[i + 1].name
+            for option in specialEnding :
+    if option == enemyNames :
+        printableCombinedEnemyNames = enemiesC[0].name
+        if len(enemiesC) == 2 :
+            if enemiesC[0].name == enemiesC[1].name :
+                printableCombinedEnemyNames += "s"
+            else :
+                printableCombinedEnemyNames += " and the " + enemiesC[1].name
+        else:
+    for i in range(len(enemiesC) - 2) :
+        printableCombinedEnemyNames += ", " + enemiesC[i + 1].name
+        printableCombinedEnemyNames += ", and the" + enemiesC[len(enemiesC) - 1].name
+
+        hasHave = " has"
+        if len(enemiesC) > 1:
+    hasHave = " have"
+        printf("The " + printableCombinedEnemyNames + hasHave + " chosen to stop fighting.")
+
+        fightOn = False
+        specialFightEnding = True
+        specialFightEndingMonsters = enemiesC
+        break
+
+        allSummoned = True
+        for enemy in enemiesC :
+    allSummoned = allSummoned and enemy.summoned
+
+        if allSummoned :
+            printableCombinedEnemyNames = enemiesC[0].name
+            if len(enemiesC) == 2 :
+                if enemiesC[0].name == enemiesC[1].name :
+                    printableCombinedEnemyNames += "s"
+                else :
+                    printableCombinedEnemyNames += " and the " + enemiesC[1].name
+                    elif len(enemiesC) > 2:
+    for i in range(len(enemiesC) - 2) :
+        printableCombinedEnemyNames += ", " + enemiesC[i + 1].name
+        printableCombinedEnemyNames += ", and the" + enemiesC[len(enemiesC) - 1].name
+
+        hasHave = " has"
+        if len(enemiesC) > 1:
+    hasHave = " have"
+        printf("The " + printableCombinedEnemyNames + hasHave + " chosen to stop fighting.")
+        fightOn = False
+        specialFightEnding = True
+        specialFightEndingMonsters = enemiesC
+        break
 
 
 
 
-def deadlyTreasure() :
-    global player, player
+        if player.currentHealth <= 0:
+    end()
+        return
+
+        player.inflictions.clear()
+        player.inflictionAttackers.clear()
+        player.currentHealth = min(player.maxHealth, player.currentHealth + 50)
+        printf("You end the fight with " + str(player.currentHealth) + " health.")
+}*/
+
+
+
+
+void DeadlyTreasure()
+{
     printf("While walking through the forest, you come across a golden box \n\
 that shimmers in the sunlight. A key lays inside the tree next to the box, \n\
-but the tree hole is too dark for you to see what else is inside the tree.")
-key = input("Do you 'take the key' or 'let it be'? ")
-while key != "take the key" and key != "let it be":
-key = input("That won't work this time! Do you 'take the key' or 'let it be'? ")
-if key == "take the key" :
-    printf("You grab the key quickly, thinking that history favors the bold, and open the box to find a potion \n\
-that increases your health by 50. You drink it, and continue along the path.")
-player.maxHealth += 50
-player.currentHealth = min(player.maxHealth, player.currentHealth + 50)
-elif key == "let it be" :
-    printf("You decide it's not worth the risk, and continue walking on the \n\
-road.")
-return
+but the tree hole is too dark for you to see what else is inside the tree.");
+    string key = Input("Do you 'take the key' or 'let it be'? ");
+    while (key != "take the key" and key != "let it be")
+        key = Input("That won't work this time! Do you 'take the key' or 'let it be'? ");
+    if (key == "take the key")
+    {
+        printf("You grab the key quickly, thinking that history favors the bold, and open the box to find a potion \n\
+that increases your health by 50. You drink it, and continue along the path.");
+        player.maxHealth += 50;
+        player.health = player.health + 50;
+    }
+    else if (key == "let it be")
+        printf("You decide it's not worth the risk, and continue walking on the road.");
+}
 
 
 
 
-def pigLanguage() :
-    printf(" ")
-    printf("The pig says, 'Atwhay isyay ouryay amenay?' ")
-    pigName = input("What did the pig say in English? ")
-    while pigName != "What is your name?" :
-        pigName = input("That won't work this time! What did the pig say in English? ")
-        pigNameask = input("What is your character's name? ")
-        while pigNameask != "Axmay" :
-            pigNameask = input("That won't work this time! What is your character's name? ")
-            printf(" ")
-            printf("The pig then says, 'Areyay ouyay ethay ersonpay at'sthay upposedsay otay ebay ivinggay Oshrojay ishay ailyday assagemay?' ")
-            pigLie = input("What did the pig say in English? ")
-            while pigLie != "Are you the person that's supposed to be giving Joshro his daily massage?" :
-                pigLie = input("That won't work this time! What did the pig say in English? ")
-                pigLieask = input("*Are* you the person that's supposed to be giving Joshro his daily massage(hint: you should *probably* say yes)? ")
-                while pigLieask != "Esyay" :
-                    pigLieask = input("That won't work this time! \n\
-*Are* you the person that's supposed to be giving Joshro his daily massage(hint: you should *probably* say yes)? ")
-printf(" ")
-printf("You finish checking in with the pig, and enter the next chamber, eager to advance to the second to last stage of your journey.")
+void PigLanguage()
+{
+    string answer = Input("\nThe pig says, 'Atwhay isyay ouryay amenay?'\nWhat did the pig say in English? ");
+    while (answer != "What is your name?")
+        answer = Input("That won't work this time! What did the pig say in English? ");
+    answer = Input("What is your character's name? ");
+    while (answer != "Axmay")
+        answer = Input("That won't work this time! What is your character's name? ");
+    printf("The pig then says, 'Areyay ouyay ethay ersonpay at'sthay upposedsay otay ebay ivinggay Oshrojay ishay ailyday assagemay?' ");
+    answer = Input("What did the pig say in English? ");
+            while(answer != "Are you the person that's supposed to be giving Joshro his daily massage?")
+            answer = Input("That won't work this time! What did the pig say in English? ");
+                answer = Input("*Are* you the person that's supposed to be giving Joshro his daily massage(hint: you should *probably* say yes)? ");
+                while(answer != "Esyay")
+                answer = Input("That won't work this time! \n\
+*Are* you the person that's supposed to be giving Joshro his daily massage(hint: you should *probably* say yes)? ");
+printf("\nYou finish checking in with the pig, and enter the next chamber, eager to advance to the second to last stage of your journey.");
+}
 
 
 
 
-def riverEscape() :
-    stepsYes = random.randint(10, 15)
-                    printf("You reach a river that could separate you from the ferocious carnivores, if you can reach the other side \n\
+void RiverEscape() // What if you had defeat an encounter while under a time limit, or if you had to stall for a while.
+{
+    int stepsYes = RandRange(5, 15);
+    printf("You reach a river that could separate you from the ferocious carnivores, if you can reach the other side \n\
 of course. Fortunately, an old fisherman is seen walking towards his flimsy boat, and you take this opportunity to ask the man \n\
 for safe passage across the swift rapids. The only issue is, the man is not picking up the social cues that indicate your panic, so \n\
-you must repeatedly prod him into picking up the pace to save both of your souls!")
-printf("You need to continously say yes to the man " + str(stepsYes) + " times before the wolves advance the " + str(stepsYes) + " steps needed to close the distance \
-and devour you.")
-prod = 0
-wolfRun = 0
-while prod != stepsYes and wolfRun != stepsYes:
-prodInput = input("Say 'yes': ")
-if prodInput == "yes" :
-    prod = prod + 1
-    printf("You've prodded the fisherman " + str(prod) + " total time(s)")
-    wolfAdvance = random.randint(1, 4)
-    if wolfAdvance == 1 or wolfAdvance == 2 or wolfAdvance == 3 :
-        wolfRun = wolfRun + 1
-        printf("The werewolves advanced " + str(wolfRun) + " total step(s)")
-        elif wolfAdvance == 4 :
-        printf("The werewolves didn't advance at all and are still at " + str(wolfRun) + " total step(s)")
-        if prod == stepsYes :
-            printf("The fisherman FINALLY finishes talking and gets the boat going, and you breathe a much-deserved \
-sigh of relief as you sit back and watch the werewolves cower in fear from the rushing water.")
-printf("Once you get across the river, the fisherman bids you farewell, and you venture on towards the castle.")
-elif wolfRun == stepsYes :
-    printf("The fisherman doesn't seem to get the hint, even after the " + str(prod) + " times you told him to hurry up. \
-The werewolves close in swiftly, and you and the fisherman become a hungry family's next meal.")
-player.currentDeathMessage = "It looks like you may need to work on your talking skills."
-end()
-return
+you must repeatedly prod him into picking up the pace to save both of your souls!");
+    printf("You need to continously say yes to the man %i times before the wolves advance the %i\
+steps needed to close the distance and devour you.", stepsYes, stepsYes);
+    int prod = 0;
+    int wolfRun = 0;
+    while (prod != stepsYes and wolfRun != stepsYes)
+    {
+        string prodInput = Input("Say 'yes': ");
+        if (prodInput == "yes")
+            prod = prod + 1;
+        printf("You've prodded the fisherman &i total time(s)", prod);
+        int wolfAdvance = RandRange(1, 4);
+        if (wolfAdvance == 1)
+            printf("The werewolves didn't advance at all and are still at %i total step(s)", wolfRun);
+        else
+        {
+            wolfRun++;
+            printf("The werewolves advanced %i total step(s)", wolfRun);
+        }
+    }
+    if (prod == stepsYes)
+        printf("The fisherman FINALLY finishes talking and gets the boat going, and you breathe a much-deserved \
+sigh of relief as you sit back and watch the werewolves cower in fear from the rushing water.\n\
+Once you get across the river, the fisherman bids you farewell, and you venture on towards the castle.");
+    else
+    {
+        printf("The fisherman doesn't seem to get the hint, even after the %i times you told him to hurry up. \
+The werewolves close in swiftly, and you and the fisherman become a hungry family's next meal.", prod);
+        player.currentDeathMessage = "It looks like you may need to work on your talking skills.";
+        End();
+    }
+}
 
 
 
 
-def castleEntrance() :
-    stick = False
-            placeholder = False
-            stable = True
-            tree = True
-            shed = True
-            while stick == False or placeholder == False:
-whereTolook = input("There are several areas of interest nearby that may contain the items you need, which include: a 'shed', \n\
-an old 'stable', or a strangely shaped 'tree'. Where do you look? ")
-if whereTolook == "stable" :
-    printf("You enter the dusty and decrepit stable, where you make a mental note of how rotten the wooden interior looks from the several \n\
+void CastleEntrance()
+{
+    bool stick = false;
+    bool placeholder = false;
+    while (stick == false or placeholder == false)
+    {
+        string whereTolook = Input("There are several areas of interest nearby that may contain the items you need, which include: a 'shed', \n\
+an old 'stable', or a strangely shaped 'tree'. Where do you look? ");
+        if (whereTolook == "stable")
+        {
+            printf("You enter the dusty and decrepit stable, where you make a mental note of how rotten the wooden interior looks from the several \n\
 years of neglect. Fortunately, a piece of wood that isn't entirely ruined juts out of the wall, and you decide that this will suffice as \n\
-a lever. You grab the STICK, and exit the stable.")
-time.sleep(currentSettings.sleepTime)
-stick = True
-stable = True
-elif whereTolook == "shed":
-printf("You enter the small shed, and laugh to yourself as you observe just how little gardening tools and other trinkets typically \n\
+a lever.%s", stick ? "" : " You grab the STICK, and exit the stable.");
+            sleep_for(seconds(currentSettings.sleepTime));
+            stick = true;
+        }
+        else if (whereTolook == "shed")
+        {
+            printf("You enter the small shed, and laugh to yourself as you observe just how little gardening tools and other trinkets typically \n\
 found in a shed are actually present. One thing that isn't present, however, is the placeholder, or even something that could pass for one. \n\
-Saddened by this, you leave the shed.")
-time.sleep(currentSettings.sleepTime)
-shed = True
-elif whereTolook == "tree":
-printf("After having a previous encounter when it comes to sticking your hand inside trees, you hesitate before blindly \n\
-shoving your hand inside the dark crevice, and your hand connects with something cold- the PLACEHOLDER! You don't test your luck any further \n\
-and exit the hole, PLACEHOLDER in hand.")
-time.sleep(currentSettings.sleepTime)
-placeholder = True
-tree = True
-printf("Using your knowledge as the village carpenter, you combine these two objects into a functional lever, and place it in the appropriate location \n\
-next to the gate.")
-printf("Hearing the gears churn inside the gate's various mechanisms, you take this as a good sign as you see the gate slowly open. \n\
-Huzzah! The gate has opened and you finally come to the last part of your journey... or so you think;)")
-return placeholder, stick, tree, shed, stable
+Saddened by this, you leave the shed.");
+            sleep_for(seconds(currentSettings.sleepTime));
+        }
+        else if (whereTolook == "tree")
+        {
+            printf("After having a previous encounter when it comes to sticking your hand inside trees, you hesitate before blindly \n\
+shoving your hand inside the dark crevice, and %s", placeholder ? "find nothing." : "your hand connects with something cold- the PLACEHOLDER! You don't test your luck any further \n\
+and exit the hole, PLACEHOLDER in hand.");
+            sleep_for(seconds(currentSettings.sleepTime));
+            placeholder = true;
+        }
+    }
+    printf("Using your knowledge as the village carpenter, you combine these two objects into a functional lever, and place it in the appropriate location \n\
+next to the gate.");
+    printf("Hearing the gears churn inside the gate's various mechanisms, you take this as a good sign as you see the gate slowly open. \n\
+Huzzah! The gate has opened and you finally come to the last part of your journey... or so you think;)");
+}
 
 
 
 
-def stringWord(emptyStr) :
-    letter = random.choice(strings)
-    strings.remove(letter)
-    emptyStr += letter
-    printf("******")
-    printf(emptyStr)
-    printf("******")
-    return emptyStr, strings
+void StringWord(string* emptyStr)
+{
+    int letter = RandRange(0, currentStrings.size() - 1);
+    emptyStr += currentStrings[letter];
+    currentStrings.erase(currentStrings.begin() + letter);
+    printf("******\n%s\n******", &emptyStr);
+}
 
 
 
 
-    def cave() :
-    global player
+bool Cave()
+{
     printf("You hesitantly enter the cave, anxious about who or what might await you inside the dark depths. Fortunately, luck \n\
 seems to favor you in this instance, and no trace of another inhabitant is visible inside the damp enclosure. In fact, you find \n\
 a perfectly preserved elixir that has the label 'Miriam's Medical Miracle' stamped in fine lettering across the brownish glass. \n\
-Before you take a swig, you doubt how safe ingesting the bottle's contents will be, and pause.")
-drinkDroptake = input("Do you 'drink' or 'drop' or 'take' the bottle? ")
-while drinkDroptake != "drink" and drinkDroptake != "drop" and drinkDroptake != "take":
-drinkDroptake = input("That won't work this time! Do you 'drink' or 'drop' or 'take' the bottle? ")
-if player.weapon.name == "Pet Slime" :
-    printf("But before being able to do anything,\n\
-your slime pet jumps from your bag and consumes the entire bottle, glass included. Slime Pet has learned 'slime spike'")
-player.weapon.LearnAttack(slimeSpike)
-return False
-elif drinkDroptake == "drink" :
-    printf("You drink the potion, but after sitting down, you instantly pass out. You wake up in the morning feeling strangely \n\
-healthier, and relish in the fact that you now have 50 more health!")
-player.maxHealth += 50
-player.currentHealth = min(player.maxHealth, player.currentHealth + 50)
-return False
-elif drinkDroptake == "drop":
-printf("You drop the potion carelessly on the ground, and am unsurprised as you witness the potion's contents dissolve the hard rock \n\
-below. You go to sleep, and wake up, happy that you avoided a possibly deadly drink.")
-return False
-elif drinkDroptake == "take" :
+Before you take a swig, you doubt how safe ingesting the bottle's contents will be, and pause.");
+    string drinkDroptake = Input("Do you 'drink' or 'drop' or 'take' the bottle? ");
+    while (drinkDroptake != "drink" and drinkDroptake != "drop" and drinkDroptake != "take")
+    {
+        drinkDroptake = Input("That won't work this time! Do you 'drink' or 'drop' or 'take' the bottle? ");
+    }
+    if (player.weapon.name == "Pet Slime")
+    {
+        printf("But before being able to do anything,\n\
+your slime pet jumps from your bag and consumes the entire bottle, glass included. Slime Pet has learned 'slime spike'");
+        player.weapon.LearnAttack(slimeSpike);
+        return false;
+    }
+    if (drinkDroptake == "drink")
+    {
+        printf("You drink the potion, but after sitting down, you instantly pass out. You wake up in the morning feeling strangely \n\
+healthier, and relish in the fact that you now have 50 more health!");
+        player.maxHealth += 50;
+        player.health = player.health + 50;
+        return false;
+    }
+    if (drinkDroptake == "drop")
+    {
+        printf("You drop the potion carelessly on the ground, and am unsurprised as you witness the potion's contents dissolve the hard rock \n\
+below. You go to sleep, and wake up, happy that you avoided a possibly deadly drink.");
+        return false;
+    }
+    // Must be take
     printf("For some almost supernatural reason, you feel as though you can use the potion for something greater, and decide \n\
 to store it in your pack for later use. You have a dream that a large green creature asks you for the potion in exchange for \n\
-safe passage across a path, but brush it off as your mind playing tricks on you and have a pretty uneventful rest of the night.")
-return True
+safe passage across a path, but brush it off as your mind playing tricks on you and have a pretty uneventful rest of the night.");
+    return true;
+}
 
 
 
 
-def swordPull() :
-    global player
-    grunt = ["gurr", "rawr", "guh", "rawr", "gurr"]
-    exercise = True
-    while exercise :
-        userGrunt = []
-        for i in range(5) :
-            muscle = input("Exert your strength: ")
-            userGrunt.append(muscle)
-            printf(*userGrunt, sep = ", ")
-            if userGrunt[i] != grunt[i] :
-                userGrunt = []
-                printf("You strain your back and have to start over!")
-                player.currentHealth = max(0, player.currentHealth - 25)
-                break
-                elif i == 4 :
-                exercise = False
+void SwordPull()
+{
+    string grunt[5]{ "gurr", "rawr", "guh", "rawr", "gurr" };
+    bool exercise = true;
+    bool failureFromExhaustion = false;
+    while (exercise)
+    {
+        int distance = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            string muscle = Input("Exert your strength: ");
+            
+            distance++;
+            for (int j = 0; j < distance; j++)
+                printf("%s", grunt[j]);
+
+            if (muscle != grunt[i])
+            {
+                distance = 0;
+                if (player.health < 50)
+                {
+                    exercise = false;
+                    failureFromExhaustion = true;
+                    break;
+                }
+                player.health -= 25;
+                printf("You strain your ack leaving you with only %i health, and have to start over again.", player.health);
+                break;
+            }
+            if (i == 4)
+            {
+                exercise = false;
                 printf("Huzzah! The sword finally nudges out of its nested position, and you bask in its strangely magical glory. 'The Python' is \n\
-engraved on the side of the blade, and you deduce that this is the name of the sword.")
-printf("Attached to the handle of the blade is a leaflet that reveals why 'The Python' feels so powerful: 'The blade decides \n\
-the enemy's fate, not you'. You take this as a good sign, and place the sword at your side as you get ready for bed.")
-if player.weapon.name == "Pet Slime":
-printf("Your Pet Slime then jumps out and eats the sword! Your Pet Slime has learned heaviest blow, it also would like to know be known as Pet Slime, Decider of Fates.")
-player.weapon.LearnAttack(heaviestBlow)
-player.weapon.name = "Pet Slime Decider of Fates"
-else:
-player.weapon = Weapon([heaviestBlow, quickAttack], "Python", 0.5)
-printf("The night is otherwise \n\
-uneventful, and you wake up feeling strangely refreshed after having that small victory the previous night!")
+engraved on the side of the blade, and you deduce that this is the name of the sword.\n\
+Attached to the handle of the blade is a leaflet that reveals why 'The Python' feels so powerful: 'The blade decides \
+the enemy's fate, not you'. You take this as a good sign, and place the sword at your side as you get ready for bed.");
+            }
+        }
+    }
+    if (failureFromExhaustion)
+        printf("You succumbed to the sleepiness and have failed the sword.");
+    else if (player.weapon.name == "Pet Slime")
+    {
+        printf("Your Pet Slime then jumps out and eats the sword! Your Pet Slime has learned heaviest blow, it also would like to know be known as Pet Slime, Decider of Fates.");
+        player.weapon.LearnAttack(heaviestBlow);
+        player.weapon.name = "Pet Slime Decider of Fates";
+    }
+    else
+    {
+        player.weapon = python;
+        printf("The night is otherwise \n\
+uneventful, and you wake up feeling strangely refreshed after having that small victory the previous night!");
+    }
+}
 
 
 
 
-def watchTower() :
+void watchTower()
+{
     printf("You enter the grey space, and find the area surprisingly empty, save for a single longsword of strikingly amazing quality. \n\
 The only issue is the fact that the sword is coincidentally stuck in a slab of stone. You've seen this somewhere before, and know that \n\
-swords stuck in stone are probably very good, but it's getting late and all that walking has you in an increasingly apparent state of exhaustion.")
-tryAvoid = input("Do you want to 'try' to take the sword out of the stone or 'avoid' the strenuous act altogether? ")
-while tryAvoid != "try" and tryAvoid != "avoid" :
-    tryAvoid = input("That won't work this time! \n\
-Do you want to 'try' to take the sword out of the stone or 'avoid' the strenuous act altogether? ")
-if tryAvoid == "try" :
-    printf("As everyone knows, making grunting sounds while exerting energy always helps you accomplish the desired task. \n\
+swords stuck in stone are probably very good, but it's getting late and all that walking has you in an increasingly apparent state of exhaustion.");
+    string tryAvoid = Input("Do you want to 'try' to take the sword out of the stone or 'avoid' the strenuous act altogether? ");
+    while (tryAvoid != "try" and tryAvoid != "avoid")
+        tryAvoid = Input("That won't work this time! \n\
+Do you want to 'try' to take the sword out of the stone or 'avoid' the strenuous act altogether? ");
+    if (tryAvoid == "try")
+    {
+        printf("As everyone knows, making grunting sounds while exerting energy always helps you accomplish the desired task. \n\
 This goes the same when trying to pull metal out of stone, and in order to successfully dislodge the blade from its spot, \n\
-you must alternate between 'guh', 'gurr', and 'rawr'.")
-swordPull()
-if tryAvoid == "avoid" :
-    printf("You decide that your rest is more important than something that almost certainly seems as if it could be useful to you, \n\
-and go to sleep restlessly on the cold hard floor.")
+you must alternate between 'guh', 'gurr', and 'rawr'.");
+        SwordPull();
+    }
+    else
+        printf("You decide that your rest is more important than something that almost certainly seems as if it could be useful to you, \n\
+and go to sleep restlessly on the cold hard floor.");
+}
 
 
 
 
-def home() :
-    tavernInncottage = input("Do you make the 'tavern', 'cottage', or 'inn' your new home? ")
-    while tavernInncottage != "tavern" and tavernInncottage != "cottage" and tavernInncottage != "inn" :
-        tavernInncottage = input("That won't work this time! Do you make the 'tavern', 'cottage', or 'inn' your new home? ")
+string Home()
+{
+    string tavernInncottage = Input("Do you make the 'tavern', 'cottage', or 'inn' your new home? ");
+        while(tavernInncottage != "tavern" and tavernInncottage != "cottage" and tavernInncottage != "inn" :
+    tavernInncottage = Input("That won't work this time! Do you make the 'tavern', 'cottage', or 'inn' your new home? ")
         return tavernInncottage
+}
 
 
 
 
-        def printOutro() :
-        global location
-        if location == "village" :
-            printf(outroMessages[0])
-            elif location == "forest" :
-            printf(outroMessages[1])
-            elif location == "old bridge" :
-            printf(outroMessages[2])
-            elif location == "sewers" :
-            printf(outroMessages[3])
-            elif location == "forest2" :
-            printf(outroMessages[4])
+void PrintOutro()
+{
+    if (location == "village")
+        printf(outroMessages[0]);
+    else if (location == "forest")
+        printf(outroMessages[1]);
+    else if (location == "old bridge")
+        printf(outroMessages[2]);
+    else if (location == "sewers")
+        printf(outroMessages[3]);
+    else if (location == "forest2")
+        printf(outroMessages[4]);
+}
 
 
 
@@ -1737,9 +1805,9 @@ printf(" ")
 location = "village"
 player.currentDeathMessage = "Don't forget that if you dodge an attack that would stun you, you won't get stunned."
 printf(introMessages[0])
-fightRun = input("Do you want to 'fight' or 'run' away from the ogre? ")
+fightRun = Input("Do you want to 'fight' or 'run' away from the ogre? ")
 while fightRun != "fight" and fightRun != "run":
-fightRun = input("That won't work this time! Do you want to 'fight' or 'run' away from the ogre? ")
+fightRun = Input("That won't work this time! Do you want to 'fight' or 'run' away from the ogre? ")
 if fightRun == "fight" :
     fightSequence([ogre], False, [[]] )
     if restart :
@@ -1748,11 +1816,11 @@ if fightRun == "fight" :
         printf("Before you can run, the ogre grabs your shirt and pulls you back, \
 and asks in a booming but obviously slurred voice:'Bretton, do you have ma \
 gold coin yet or not?'")
-fightAvoid = input("'1'. Lie and say its back at the inn and you'll get it as soon as he lets you go.\n\
+fightAvoid = Input("'1'. Lie and say its back at the inn and you'll get it as soon as he lets you go.\n\
 '2'. Tell him to let you go or else he'll have to worry about more than just a stupid gold coin. \n\
 (pick a number): ")
 while fightAvoid != "1" and fightAvoid != "2":
-fightAvoid = input("That won't work this time! PICK A NUMBER: ")
+fightAvoid = Input("That won't work this time! PICK A NUMBER: ")
 if player.weapon.name == "Ogre in a Bottle" :
     printf("The ogre then ignores what you say and calls you back saying incoherently that you smell suspicious, and you're forced to fight them.")
     fightSequence([ogre], False, [[]] )
@@ -1784,9 +1852,9 @@ printf(" ")
 location = "forest"
 player.currentDeathMessage = "Don't forget that you can 'change' targets when there's more than 1 foe."
 printf(introMessages[1])
-fightPersuade = input("Do you want to 'fight' or 'persuade' the goblin? ")
+fightPersuade = Input("Do you want to 'fight' or 'persuade' the goblin? ")
 while fightPersuade != "fight" and fightPersuade != "persuade":
-fightPersuade = input("That won't work this time! Do you want to 'fight' or 'persuade' the goblin? ")
+fightPersuade = Input("That won't work this time! Do you want to 'fight' or 'persuade' the goblin? ")
 if fightPersuade == "fight" :
     printf("A Pet Slime also jumps out of the bushes to protect their owner!")
     fightSequence([goblin, slime], False, [[]] )
@@ -1794,19 +1862,19 @@ if fightPersuade == "fight" :
         return
         printOutro()
         elif fightPersuade == "persuade" :
-        parkour = input("The goblin runs away, and you scramble after it. To catch up to the goblin, you can either 'slide' under a fallen log, or \n\
+        parkour = Input("The goblin runs away, and you scramble after it. To catch up to the goblin, you can either 'slide' under a fallen log, or \n\
 'vault' over a thorny bush. What do you do? ")
 while parkour != "slide" and parkour != "vault" :
-    parkour = input("That won't work this time! What do you do? 'slide' or 'vault'? ")
+    parkour = Input("That won't work this time! What do you do? 'slide' or 'vault'? ")
     if parkour == "slide" :
-        persuade = input("You successfully slide under the log, and find the goblin scurried up on a tree branch, \n\
+        persuade = Input("You successfully slide under the log, and find the goblin scurried up on a tree branch, \n\
 just out of reach. What do you say to the scared creature? \n\
 Oh yeah, and there's some weird slime looking at him.\n\
 '1'. \"I won't hurt you I promise, just please give me back my stuff and I promise I'll make it up to you.\" \n\
 '2'. Pet that slime that you hope might be his and say \"You know, I like slimes too.\" \n\
 (pick a number): ")
 while persuade != "1" and persuade != "2":
-persuade = input("That won't work this time! PICK A NUMBER: ")
+persuade = Input("That won't work this time! PICK A NUMBER: ")
 if persuade == "1" :
     brutalEnding = False
     printf("The goblin begrudgingly drops your items, but makes you promise that, under oath, you will come \n\
@@ -1862,9 +1930,9 @@ printf("++++++++++++++++")
 printf(" ")
 location = "cave/watchtower"
 printf(introMessages[3])
-caveWatchtower = input("Do you take shelter in the 'cave' or the 'watchtower'? ")
+caveWatchtower = Input("Do you take shelter in the 'cave' or the 'watchtower'? ")
 while caveWatchtower != "cave" and caveWatchtower != "watchtower":
-caveWatchtower = input("That won't work this time! Do you take shelter in the 'cave' or the 'watchtower'? ")
+caveWatchtower = Input("That won't work this time! Do you take shelter in the 'cave' or the 'watchtower'? ")
 if caveWatchtower == "cave" :
     potionTroll = cave()
     printf("You leave the cave, and trek on towards the increasingly visible castle.")
@@ -1884,20 +1952,20 @@ would you happen to have anything that could satiate my thirst?")
 if potionTroll == True:
 printf("You suddenly remember that you have that potion from the cave, as well as the oddly specific dream that turned out \n\
 to manifest itself into reality... Anyway, you think about if you should give the troll the potion or keep it for yourself.")
-bargainFight = input("Do you 'give' the troll the potion or 'keep' it for yourself? ")
+bargainFight = Input("Do you 'give' the troll the potion or 'keep' it for yourself? ")
 while bargainFight != "give" and bargainFight != "keep" :
-    bargainFight = input("That won't work this time! Do you 'give' the troll the potion or 'keep' it for yourself? ")
+    bargainFight = Input("That won't work this time! Do you 'give' the troll the potion or 'keep' it for yourself? ")
     if bargainFight == "give" :
         brutalEnding = False
         printf("You quickly give the troll the potion, and she monstrously consumes its contents before proceeding to burp in your \n\
 face with a satisfied grin on her face. 'WOW! I don't know what kind of stuff was in that, but I think I'm gonna take a nap for a little bit. \n\
 DON'T GO ANYWHERE HUMAN, OR ELS-', is all the troll can say before the potion's effects fully take place, and she falls onto the bridge and starts snoring loudly.")
 emptyStr, strings = stringWord(emptyStr)
-stayGo = input("Maybe it's because you felt bad for disrespecting the troll's bridge, or more likely because you're crazy, but you \n\
+stayGo = Input("Maybe it's because you felt bad for disrespecting the troll's bridge, or more likely because you're crazy, but you \n\
 you hesitate before going and wonder whether or not you should 'stay' and see what the troll wants from you, or 'go' because the princess stuck in an \
 evil dragon's castle is still there and, well, that was the whole reason you're out here in the first place... What do you do? ")
 while stayGo != "stay" and stayGo != "go":
-stayGo = input("That won't work this time! Do you 'stay' or 'go'? ")
+stayGo = Input("That won't work this time! Do you 'stay' or 'go'? ")
 if stayGo == "stay" :
     printf("You wait several hours (trolls are notorious for sleeping for long periods of time), and just as you're about to forget it, \n\
 the troll wakes up and looks considerably more happy. 'Heya pal! Look I'm sorry 'bout all that yelling I did earlier, I just can't stand inconsiderate individuals, \n\
@@ -1994,9 +2062,9 @@ fightSequence([mutant], False, [[]] )
 if restart:
 return
 printOutro()
-spareKill = input("The mutant crashes to the ground, pleading with you to spare it. Do you 'spare' or 'kill' the mutant? ")
+spareKill = Input("The mutant crashes to the ground, pleading with you to spare it. Do you 'spare' or 'kill' the mutant? ")
 while spareKill != "spare" and spareKill != "kill" :
-    spareKill = input("That won't work this time! Do you 'spare' or 'kill' the mutant? ")
+    spareKill = Input("That won't work this time! Do you 'spare' or 'kill' the mutant? ")
     if spareKill == "spare" :
         brutalEnding = False
         printf("You let the mutant go, and it shambles off into the early morning darkness.")
@@ -2027,9 +2095,9 @@ printf("Before beginning your attack on the rat, you remember that you used to t
 medieval track and field at your former academy, and ponder over whether or not you should see if your skills are still in tip-top shape. \n\
 The little voice in your head warns you, though, that if your health has not been increased \n\
 past the default 100 value, you might not be able to outrun the rambunctious rodent after all.")
-outrunFight = input("Do you 'fight' or 'outrun' the rat? ")
+outrunFight = Input("Do you 'fight' or 'outrun' the rat? ")
 while outrunFight != "fight" and outrunFight != "outrun":
-outrunFight = input("That won't work this time! Do you 'fight' or 'outrun' the rat? ")
+outrunFight = Input("That won't work this time! Do you 'fight' or 'outrun' the rat? ")
 if outrunFight == "fight" :
     fightSequence([rat, babyRat, babyRat], False, [["Baby Rat"], ["Baby Rat", "Baby Rat"]] )
     if restart :
@@ -2038,9 +2106,9 @@ if outrunFight == "fight" :
             ratOrRats = "rat"
             if len(specialFightEndingMonsters) > 1:
 ratOrRats = "rats"
-prompt = input("After you defeat the parent rat, the " + ratOrRats + " do you want to chase after them? ('yes' or 'no') ")
+prompt = Input("After you defeat the parent rat, the " + ratOrRats + " do you want to chase after them? ('yes' or 'no') ")
 while prompt != "yes" and prompt != "no" :
-    prompt = input("That won't work this time. Do you want to chase after them? ('yes' or 'no') ")
+    prompt = Input("That won't work this time. Do you want to chase after them? ('yes' or 'no') ")
     if prompt == "yes" :
         fightSequence(specialFightEndingMonsters, False, [[]] )
     else :
@@ -2087,9 +2155,9 @@ if restart :
         ratOrRats = "rat"
         if len(specialFightEndingMonsters) > 1:
 ratOrRats = "rats"
-prompt = input("After you defeat the parent rat, the " + ratOrRats + " do you want to chase after them? ('yes' or 'no') ")
+prompt = Input("After you defeat the parent rat, the " + ratOrRats + " do you want to chase after them? ('yes' or 'no') ")
 while prompt != "yes" and prompt != "no" :
-    prompt = input("That won't work this time. Do you want to chase after them? ('yes' or 'no') ")
+    prompt = Input("That won't work this time. Do you want to chase after them? ('yes' or 'no') ")
     if prompt == "yes" :
         fightSequence(deepcopy(specialFightEndingMonsters), False, [[]] )
     else :
@@ -2166,7 +2234,7 @@ printf("******")
 printf(emptyStr)
 printf("******")
 stringCorrect = False
-askString = input("What is the word unscrambled? ")
+askString = Input("What is the word unscrambled? ")
 if askString == "string":
 printf("You got it! The sorcerer smiles with admiration as he hands you the obviously enlarged and luxurious potion full of fizzling bubbles. \n\
 You drink it, and bask in the glory that is being a nonviolent person before heading to the door separating you from the girl you came to save and the unjust creature you must stop...")
@@ -2178,7 +2246,7 @@ printf("******")
 printf(emptyStr)
 printf("******")
 if stringCorrect != True :
-    askString = input("That won't work this time! What is the word unscrambled? ")
+    askString = Input("That won't work this time! What is the word unscrambled? ")
     if askString == "string" :
         printf("You got it! The sorcerer smiles with admiration as he hands you the obviously enlarged and luxurious potion full of fizzling bubbles. \n\
     You drink it, and bask in the glory that is being a nonviolent person before heading to the door separating you from the girl you came to save and the unjust creature you must stop...")
@@ -2190,7 +2258,7 @@ printf("******")
 printf(emptyStr)
 printf("******")
 if stringCorrect != True :
-    askString = input("Last chance! What is the word unscrambled? ")
+    askString = Input("Last chance! What is the word unscrambled? ")
     if askString == "string" :
         printf("You got it! The sorcerer smiles with admiration as he hands you the obviously enlarged and luxurious potion full of fizzling bubbles. \n\
 You drink it, and bask in the glory that is being a nonviolent person before heading to the door separating you from the girl you came to save and the unjust creature you must stop...")
@@ -2241,7 +2309,7 @@ for ending in trackEndings :
 printf(ending)
 endingChosen = False
 while not endingChosen :
-    chooseEnding = input("What do you do (Type the name of the person)? ").lower()
+    chooseEnding = Input("What do you do (Type the name of the person)? ").lower()
     if brutalEnding :
         printf("=]")
         endingChosen
@@ -2265,10 +2333,10 @@ while not endingChosen :
         printf(" ")
         printf("++++++++++++++++")
         printf(" ")
-        specialThanks = input("Would you like to read the special thanks note (it's totally optional :) ) \n\
+        specialThanks = Input("Would you like to read the special thanks note (it's totally optional :) ) \n\
 ('yes' or 'no')? ")
 while specialThanks != "yes" and specialThanks != "no":
-specialThanks = input("That won't work this time! Do you want to read the note ('yes' or 'no')? ")
+specialThanks = Input("That won't work this time! Do you want to read the note ('yes' or 'no')? ")
 if specialThanks == "yes" :
     printf("This game took me(Matthew) a little bit under 2 months to make, and it was definitely a rollercoaster \n\
 of hating programming and loving it, but I'd just like to say a couple quick things about some of the people who helped/supported me through \n\
@@ -2345,9 +2413,9 @@ else:
 printf("The fun's not quite over yet friends, just wait... =] =] =] =] =]\n\
     - sincerely, Jordan")
 
-    prompt = input("Do you want to play again? ('yes' or 'no') ")
+    prompt = Input("Do you want to play again? ('yes' or 'no') ")
     while prompt != "yes" and prompt != "no" :
-        prompt = input("'yes' or 'no'")
+        prompt = Input("'yes' or 'no'")
         restart = prompt == "yes"
 
 
