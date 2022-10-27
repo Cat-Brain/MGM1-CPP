@@ -1077,7 +1077,7 @@ of what the number is, and try to add up to the sum of it (keep in mind you'll h
 
 void FightSequence(vector<Enemy> enemies, bool spareable, vector<vector<string>> specialEnding)
 {
-    specialFightEnding = false;
+    bool specialFightEnding = false;
     bool fightOn = true;
     bool fightFrameOne = true;
     int target = 0;
@@ -1124,7 +1124,7 @@ void FightSequence(vector<Enemy> enemies, bool spareable, vector<vector<string>>
                         for (int i = 0; i < enemies.size(); i++)
                         {
                             ((Enemy*)enemyTurn.summons[i])->summoned = true;
-                            printf( + " has birthed a new " + ((Enemy*)enemyTurn.summons[i])->name + "!", enemies[i].name);
+                            printf(+" has birthed a new " + ((Enemy*)enemyTurn.summons[i])->name + "!", enemies[i].name);
                         }
                         enemiesC.extend(enemiesBornC)
                             unblockedDamage += enemyHit.damage
@@ -1142,98 +1142,123 @@ void FightSequence(vector<Enemy> enemies, bool spareable, vector<vector<string>>
                 }
                 else
                 {
-                    if not enemiesC[i].IsStunned() :
-                        enemyHit, enemiesBorn = enemiesC[i].TakeTurn(i)
-                        enemiesBornC = deepcopy(enemiesBorn)
-                        for i in range(len(enemiesBornC)) :
-                            enemiesBornC[i].summoned = true
-                            printf(enemiesC[i].name + " has birthed a new " + enemiesBornC[i].name + "!")
-                            enemiesC.extend(enemiesBornC)
-                            player.ApplyHit(enemyHit, false)
-                            heal = int(floor(float(enemyHit.damage) * enemiesC[i].leech))
-                            if heal != 0:
-                    printf(enemiesC[i].name + " heal's off of you for " + str(heal) + ".")
-                        enemiesC[damageDealer[i]].health = min(enemiesC[damageDealer[i]].maxHealth, enemiesC[damageDealer[i]].health + heal)
-                        printf("Becuase you were stunned you didn't block.\n")
-                            else:
-                    printf(enemiesC[i].name + " did not attack this round as they were stunned.")
-                        printf("")
+                    if (!enemies[i].IsStunned())
+                    {
+                        TurnReturn tr = enemies[i].TakeTurn(i);
+                        for (int i = 0; i < tr.summons.size(); i++)
+                        {
+                            tr.summons[i].summoned = true;
+                            printf(enemies[i].name + " has birthed a new " + tr.summons[i].name + "!");
+                        }
+                        enemies.insert(enemies.end(), tr.summons.begin, tr.summons.end());
+                        player.ApplyHit(tr.hit, false);
+                        int heal = floorf(tr.hit.damage * enemies[i].leech));
+                        if (heal != 0)
+                        {
+                            printf("%s heal's off of you for %i.", enemies[i].name, heal);
+                            enemies[i] = fminf(enemies[i].maxHealth, enemies[i].health + heal);
+                        }
+                        printf("Becuase you were stunned you didn't block.\n");
+                    }
+                    else
+                    {
+                        printf(enemies[i].name + " did not attack this round as they were stunned.");
+                        printf("");
+                    }
                 }
             }
 
-                for i in range(len(enemiesC)) :
-                    ignored, inflictionDamageDelt, respectiveNames = enemiesC[i].UpdateInflictions()
+            for (int i = 0; i < enemies.size(); i++)
+            {
+                InflictionResults ir = enemies[i].UpdateInflictions();
+                for (int i = 0; i < ir.damageFromSources; i++)
+                {
+                    int heal = floorf(ir.damageFromSources[j] * player.weapon.leech);
+                    if (heal != 0)
+                    {
+                        printf("You heal off of %s for %i because of %s.\n", enemies[i].name, heal, ir.names[j]);
+                        player.health = fminf(player.maxHealth, player.currentHealth + heal);
+                    }
+                }
+            }
+
+            InflictionResults ir = player.UpdateInflictions();
+            for (int i = 0; i < ir.damageFromSources; i++)
+            {
+                int heal = floorf(ir.damageFromSources[i] * enemies[ir.originalAttackers[i]].leech);
+                if (heal != 0)
+                {
+                    printf("%s heal's off of you for %i because of %s.", enemies[ir.originalAttackers[i]].name, heal, ir.names[i]);
+                    enemies[ir.originalAttackers[i]].health = fminf(enemies[ir.originalAttackers[i]].maxHealth, enemies[ir.originalAttackers[i]].health + heal);
+                }
+            }
+        }
+        else if (prompt == "attack")
+        {
+            printf("");
+            for (int i = 0; i < enemies.size(); i++)
+            {
+                if (!enemiesC[i].IsStunned())
+                {
+                    TurnReturn tr = enemies[i].TakeTurn(i);
+                    for (int i = 0; i < tr.summons.size(); i++)
+                    {
+                        tr.summons[i].summoned = true;
+                        printf("%s has birthed a new %s!", enemies[i].name, tr.summons[i].name);
+                    }
+                    enemies.insert(enemies.end(), tr.summons.begin(), tr.summons.end());
+                    player.ApplyHit(tr.hit, false);
+                    int heal = floorf(tr.hit.damage * enemies[i].leech);
+                    if (heal != 0)
+                    {
+                        printf("%s heal's off of you for %i.", enemies[i].name, heal);
+                        enemies[i].health = fminf(enemies[i].maxHealth, enemies[i].health + heal);
+                    }
+                }
+                else
+                {
+                    printf("%s did not attack this round as they were stunned.", enemies[i].name);
+                    printf("");
+                }
+            }
+
+            for (int i = 0; i < enemies.size(); i++)
+            {
+                InflictionResults ir = enemies[i].UpdateInflictions();
                     for j in range(len(inflictionDamageDelt)) :
                         heal = int(floor(float(inflictionDamageDelt[j]) * player.weapon.leech))
                         if heal != 0 :
                             printf("You heal off of " + enemiesC[i].name + " for " + str(heal) + " because of " + respectiveNames[j] + ".")
                             player.currentHealth = min(player.maxHealth, player.currentHealth + heal)
                             printf("")
+            }
 
-                            damageDealer, inflictionDamageDelt, respectiveNames = player.UpdateInflictions()
-                            for i in range(len(damageDealer)) :
-                                heal = int(floor(float(inflictionDamageDelt[i]) * enemiesC[damageDealer[i]].leech))
-                                if heal != 0 :
-                                    printf(enemiesC[damageDealer[i]].name + " heal's off of you for " + str(heal) + " because of " + respectiveNames[i] + ".")
-                                    enemiesC[damageDealer[i]].health = min(enemiesC[damageDealer[i]].maxHealth, enemiesC[damageDealer[i]].health + heal)
-        }
+                            if not player.IsStunned() :
+                                if spareableand player.weapon.CurrentAttack().name == "spare" :
+                                    spareSucceeds = random.randint(1, 3) == 3
+                                    if spareSucceeds :
+                                        printf("You attempt to spare and are successful!")
+                                        specialFightEnding = true
+                                        specialFightEndingMonsters = enemiesC
+                                        fightOn = false
+                                        break
+                                        printf("You attempt to spare and are unsuccessful.")
+                                        playerHit = player.TakeTurn()
+                                        enemiesC[target].ApplyHit(playerHit)
+                                        player.currentHealth = min(player.maxHealth, player.currentHealth + int(floor(float(playerHit.damage) * player.weapon.leech)))
+                                        printf("")
+                                    else:
+            printf("Becuase you were stunned you didn't attack.\n")
 
-
-                                elif prompt == "attack" :
-                                printf("")
-                                for i in range(len(enemiesC)) :
-                                    if not enemiesC[i].IsStunned() :
-                                        enemyHit, enemiesBorn = enemiesC[i].TakeTurn(i)
-                                        enemiesBornC = deepcopy(enemiesBorn)
-                                        for i in range(len(enemiesBornC)) :
-                                            enemiesBornC[i].summoned = true
-                                            printf(enemiesC[i].name + " has birthed a new " + enemiesBornC[i].name + "!")
-                                            enemiesC.extend(enemiesBornC)
-                                            player.ApplyHit(enemyHit, false)
-                                            heal = int(floor(float(enemyHit.damage) * enemiesC[i].leech))
-                                            if heal != 0:
-        printf(enemiesC[i].name + " heal's off of you for " + str(heal) + ".")
-            enemiesC[i].health = min(enemiesC[i].maxHealth, enemiesC[i].health + heal)
-                                            else:
-        printf(enemiesC[i].name + " did not attack this round as they were stunned.")
-            printf("")
-
-            for i in range(len(enemiesC)) :
-                ignored, inflictionDamageDelt, respectiveNames = enemiesC[i].UpdateInflictions()
-                for j in range(len(inflictionDamageDelt)) :
-                    heal = int(floor(float(inflictionDamageDelt[j]) * player.weapon.leech))
+                damageDealer, inflictionDamageDelt, respectiveNames = player.UpdateInflictions()
+                for i in range(len(damageDealer)) :
+                    heal = int(floor(float(inflictionDamageDelt[i]) * enemiesC[damageDealer[i]].leech))
                     if heal != 0 :
-                        printf("You heal off of " + enemiesC[i].name + " for " + str(heal) + " because of " + respectiveNames[j] + ".")
-                        player.currentHealth = min(player.maxHealth, player.currentHealth + heal)
-                        printf("")
-
-                        if not player.IsStunned() :
-                            if spareableand player.weapon.CurrentAttack().name == "spare" :
-                                spareSucceeds = random.randint(1, 3) == 3
-                                if spareSucceeds :
-                                    printf("You attempt to spare and are successful!")
-                                    specialFightEnding = true
-                                    specialFightEndingMonsters = enemiesC
-                                    fightOn = false
-                                    break
-                                    printf("You attempt to spare and are unsuccessful.")
-                                    playerHit = player.TakeTurn()
-                                    enemiesC[target].ApplyHit(playerHit)
-                                    player.currentHealth = min(player.maxHealth, player.currentHealth + int(floor(float(playerHit.damage) * player.weapon.leech)))
-                                    printf("")
-                                else:
-        printf("Becuase you were stunned you didn't attack.\n")
-
-            damageDealer, inflictionDamageDelt, respectiveNames = player.UpdateInflictions()
-            for i in range(len(damageDealer)) :
-                heal = int(floor(float(inflictionDamageDelt[i]) * enemiesC[damageDealer[i]].leech))
-                if heal != 0 :
-                    printf(enemiesC[damageDealer[i]].name + " heal's off of you for " + str(heal) + " because of " + respectiveNames[i] + ".")
-                    enemiesC[damageDealer[i]].health = min(enemiesC[damageDealer[i]].maxHealth, enemiesC[damageDealer[i]].health + heal)
-
-
-                    elif prompt == "switch" :
-                    player.weapon.SwitchAttacks("", true)
+                        printf(enemiesC[damageDealer[i]].name + " heal's off of you for " + str(heal) + " because of " + respectiveNames[i] + ".")
+                        enemiesC[damageDealer[i]].health = min(enemiesC[damageDealer[i]].maxHealth, enemiesC[damageDealer[i]].health + heal)
+        }
+                    else if(prompt == "switch")
+                    player.weapon.SwitchAttacks("", true);
 
 
                 else:
