@@ -78,6 +78,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -120,6 +122,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -139,7 +142,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cpp-terminal\base.cpp" />
+    <ClCompile Include="cpp-terminal\input.cpp" />
+    <ClCompile Include="cpp-terminal\private\platform.cpp" />
+    <ClCompile Include="cpp-terminal\prompt.cpp" />
+    <ClCompile Include="cpp-terminal\window.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="conmanip.h" />
+    <ClInclude Include="cpp-terminal\base.hpp" />
+    <ClInclude Include="cpp-terminal\input.hpp" />
+    <ClInclude Include="cpp-terminal\private\conversion.hpp" />
+    <ClInclude Include="cpp-terminal\private\macros.hpp" />
+    <ClInclude Include="cpp-terminal\private\platform.hpp" />
+    <ClInclude Include="cpp-terminal\prompt.hpp" />
+    <ClInclude Include="cpp-terminal\version.hpp" />
+    <ClInclude Include="cpp-terminal\window.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp-terminal\version.hpp.in" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,4 @@
-// Go to https ://github.com/Matthew-12525/Create-Your-Own-Adventure for the unmodded experience. =]
+﻿// Go to https ://github.com/Matthew-12525/Create-Your-Own-Adventure for the unmodded experience. =]
 /*
 Hiya, this 'mod' was written by Jordan Baumann(me),
 however this all wouldn't of existed without Matthew's original version of the game(link above^^^).
@@ -14,7 +14,6 @@ using namespace std::chrono; // nanoseconds, system_clock, seconds
 sleep_for(nanoseconds(10));
 sleep_until(system_clock::now() + seconds(1));
 */
-
 #include <stdio.h>      // printf, scanf, puts, NULL
 #include <stdlib.h>     // srand, rand
 #include <time.h>       // time(NULL)
@@ -22,6 +21,9 @@ sleep_until(system_clock::now() + seconds(1));
 #include <vector> // For vector class.
 #include <iostream> // For cin and cout.
 #include <algorithm>
+#include <stdexcept>
+#include "cpp-terminal/base.hpp" // Fancy colors. =]
+#define T_RESET "\033[0m"
 
 using std::string;
 using std::vector;
@@ -37,7 +39,7 @@ typedef unsigned int uint;
 // Early functions.
 int RandRange(int min, int max)
 {
-    return (min == max ? min : (rand() % (max - min)) + min);
+    return (min == max ? min : (rand() % (max - min + 1)) + min);
 }
 
 bool IsNumber(const string& s)
@@ -77,6 +79,25 @@ enum InflictionType
 };
 
 
+struct InflictionSpecs
+{
+    int damage;
+    int deathDamage;
+    int damageReduction;
+    string name;
+    Term::RGB color;
+};
+InflictionSpecs inflictionSpecs[] = {
+    { 0, 0, 0, "NULL INFLICTION TYPE", Term::RGB(255, 25, 2) },
+    { 2, 2, 0, "poison", Term::RGB(111, 158, 0)},
+    { 3, 1, 0, "bleed", Term::RGB(158, 0, 55)},
+    { 10, 5, 0, "burning", Term::RGB(255, 167, 66)},
+    { 1, 10, 0, "deadly hug", Term::RGB(41, 255, 198)},
+    { 0, 0, 0, "stun", Term::RGB(200, 200, 0)},
+    { 0, 0, 15, "wet", Term::RGB(0, 0, 200)},
+    { 0, 0, -10, "strengthen", Term::RGB(150, 0, 200)}
+};
+
 
 class Infliction
 {
@@ -90,74 +111,45 @@ public:
 
     Infliction() = default;
 
+    InflictionSpecs GetSpecs()
+    {
+        return inflictionSpecs[effect];
+    }
+
     int FindDamage()
     {
-        switch (effect)
-        {
-        case POISON:
-            return 2;
-        case BLEED:
-            return 3;
-        case BURNING:
-            return 10;
-        case DEADLY_HUG:
-            return 1;
-        default:
-            return 0;
-        }
+        return GetSpecs().damage;
     }
 
     int DeathDamage()
     {
-        switch (effect)
-        {
-        case POISON:
-            return 2;
-        case BLEED:
-            return 1;
-        case BURNING:
-            return 5;
-        case DEADLY_HUG:
-            return 10;
-        default:
-            return 0;
-        }
+        return GetSpecs().deathDamage;
     }
 
     int FindDamageReduction()
     {
-        switch (effect)
-        {
-        case WET:
-            return 15;
-        case STRENGHTEN:
-            return -10;
-        default:
-            return 0;
-        }
+        return GetSpecs().damageReduction;
+    }
+
+    string FindRawName()
+    {
+        return GetSpecs().name;
     }
 
     string FindName()
     {
-        switch (effect)
-        {
-        case POISON:
-            return "poison";
-        case BLEED:
-            return "bleed";
-        case BURNING:
-            return "burning";
-        case DEADLY_HUG:
-            return "deadly hug";
-        case STUN:
-            return "stun";
-        case WET:
-            return "wet";
-        case STRENGHTEN:
-            return "strengthen";
-        default:
-            return "NULL INFLICTION TYPE";
-        }
+        InflictionSpecs specs = GetSpecs();
+        return Term::color_fg(specs.color) + specs.name + T_RESET;
+    }
+
+    Term::RGB FindRawColor()
+    {
+        return GetSpecs().color;
+    }
+    
+    string FindColor()
+    {
+        return Term::color_fg(FindRawColor());
     }
 };
 
@@ -400,27 +392,27 @@ public:
             }
 
             // Self hit:
-            if (attackHit.hit.damage != 0 || attackHit.hit.inflictions.size() != 0)
+            if (attackHit.selfHit.damage != 0 || attackHit.selfHit.inflictions.size() != 0)
             {
-                if (attackHit.unmodifiedDamage != attackHit.hit.damage)
+                if (attackHit.unmodifiedSelfDamage != attackHit.selfHit.damage)
                 {
-                    printf("%s does %s. This attack deals %i damage. It would've done %i if it weren't for inflictions.\n",
-                        name.c_str(), currentAttack->name.c_str(), attackHit.hit.damage, attackHit.unmodifiedDamage);
+                    printf("%s does %s. This attack deals %i self damage. It would've done %i if it weren't for inflictions.\n",
+                        name.c_str(), currentAttack->name.c_str(), attackHit.selfHit.damage, attackHit.unmodifiedSelfDamage);
                 }
                 else
                 {
                     printf("%s does %s. This attack deals %i damage.\n",
-                        name.c_str(), currentAttack->name.c_str(), attackHit.hit.damage);
+                        name.c_str(), currentAttack->name.c_str(), attackHit.selfHit.damage);
                 }
-                for (StatusEffect statusEffect : attackHit.hit.inflictions)
-                    printf("This attack inflicts %s for %i turns.\n", statusEffect.Name().c_str(), statusEffect.durationLeft);
+                for (StatusEffect statusEffect : attackHit.selfHit.inflictions)
+                    printf("This attack inflicts %s for %i turns on %s.\n", statusEffect.Name().c_str(), statusEffect.durationLeft);
             }
             else
             {
-                if (attackHit.unmodifiedDamage > 0)
-                    printf("%s does %s. %s misses, but it would've done %i if it weren't for inflictions.\n", name.c_str(), currentAttack->name.c_str(), name.c_str(), attackHit.unmodifiedDamage);
-                else if (currentAttack->damage != 0 || currentAttack->damageRand != 0)
-                    printf("%s does %s. %s misses.\n", name.c_str(), currentAttack->name.c_str(), name.c_str());
+                if (attackHit.unmodifiedSelfDamage > 0)
+                    printf("%s does %s. %s misses its self-damage, but it would've done %i if it weren't for inflictions.\n", name.c_str(), currentAttack->name.c_str(), name.c_str(), attackHit.unmodifiedSelfDamage);
+                else if (currentAttack->selfDamage != 0 || currentAttack->selfDamageRand != 0)
+                    printf("%s does %s. %s misses its self-damage.\n", name.c_str(), currentAttack->name.c_str(), name.c_str());
             }
             ApplyHit(attackHit.selfHit);
 
@@ -455,18 +447,16 @@ public:
 
         vector<int> orinalInflictionAttackers(inflictionAttackers);
 
-        vector<int> damageFromSources(0);
-        damageFromSources.insert(damageFromSources.end(), inflictionAttackers.size(), 0);
+        vector<int> damageFromSources(inflictionAttackers.size());
 
-        vector<string> respectiveNames(0);
-        respectiveNames.insert(respectiveNames.end(), inflictionAttackers.size(), "");
+        vector<string> respectiveNames(inflictionAttackers.size());
 
         for (int i = 0; i < inflictions.size(); i++)
         {
             respectiveNames[i] = inflictions[i].Name();
         }
 
-        for (int i = 0; i < inflictions.size(); i++)
+        for (int i = 0; i < inflictions.size() + destroyedThisFrame; i++)
         {
             int damage = inflictions[i - destroyedThisFrame].Update();
             health -= damage;
@@ -477,7 +467,7 @@ public:
                 if (damage > 0)
                     printf("%s's %s infliction has been destroyed but it did %i damage this turn.\n", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str(), damage);
                 else
-                    printf("%s's %s infliction has been destroyed no damage this turn.\n", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str());
+                    printf("%s's %s infliction has been destroyed and it did no damage this turn.\n", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str());
                 inflictions.erase(inflictions.begin() + i - destroyedThisFrame);
                 inflictionAttackers.erase(inflictionAttackers.begin() + i - destroyedThisFrame);
                 destroyedThisFrame += 1;
@@ -563,7 +553,6 @@ public:
         while (badInput)
         {
             prompt = Input("That won't work this time! Do you want to " + turnDialogue);
-            printf("-%s-", prompt.c_str());
             badInput = !(prompt == "nevermind" && nevermindable);
 
             for (int i = 0; i < attacks.size(); i++)
@@ -631,6 +620,7 @@ public:
 
         if (currentAttack->length <= currentAttack->timeSinceStart)
         {
+            currentAttack->timeSinceStart = 1;
             AttackHit attackHit = currentAttack->RollDamage(0, FindDamageReduction());
             newSummons = currentAttack->summons;
 
@@ -653,33 +643,33 @@ public:
             else
             {
                 if (attackHit.unmodifiedDamage > 0)
-                    printf("%s does %s. %s misses, but it would've done %i if it weren't for inflictions.", name.c_str(), currentAttack->name.c_str(), name.c_str(), attackHit.unmodifiedDamage);
+                    printf("%s does %s. %s misses, but it would've done %i if it weren't for inflictions.\n", name.c_str(), currentAttack->name.c_str(), name.c_str(), attackHit.unmodifiedDamage);
                 else if (currentAttack->damage != 0 || currentAttack->damageRand != 0)
-                    printf("%s does %s. %s misses.", name.c_str(), currentAttack->name.c_str(), name.c_str());
+                    printf("%s does %s. %s misses.\n", name.c_str(), currentAttack->name.c_str(), name.c_str());
             }
 
             // Self hit:
-            if (attackHit.hit.damage != 0 || attackHit.hit.inflictions.size() != 0)
+            if (attackHit.selfHit.damage != 0 || attackHit.selfHit.inflictions.size() != 0)
             {
-                if (attackHit.unmodifiedDamage != attackHit.hit.damage)
+                if (attackHit.unmodifiedSelfDamage != attackHit.selfHit.damage)
                 {
-                    printf("%s does %s. This attack deals %i damage. It would've done %i if it weren't for inflictions.\n",
-                        name.c_str(), currentAttack->name.c_str(), attackHit.hit.damage, attackHit.unmodifiedDamage);
+                    printf("%s does %s. This attack deals %i self damage. It would've done %i if it weren't for inflictions.\n",
+                        name.c_str(), currentAttack->name.c_str(), attackHit.selfHit.damage, attackHit.unmodifiedSelfDamage);
                 }
                 else
                 {
                     printf("%s does %s. This attack deals %i damage.\n",
-                        name.c_str(), currentAttack->name.c_str(), attackHit.hit.damage);
+                        name.c_str(), currentAttack->name.c_str(), attackHit.selfHit.damage);
                 }
-                for (StatusEffect statusEffect : attackHit.hit.inflictions)
-                    printf("This attack inflicts %s for %i turns.\n", statusEffect.Name().c_str(), statusEffect.durationLeft);
+                for (StatusEffect statusEffect : attackHit.selfHit.inflictions)
+                    printf("This attack inflicts %s for %i turns on %s.\n", statusEffect.Name().c_str(), statusEffect.durationLeft);
             }
             else
             {
-                if (attackHit.unmodifiedDamage > 0)
-                    printf("%s does %s. %s misses, but it would've done %i if it weren't for inflictions.", name.c_str(), currentAttack->name.c_str(), name.c_str(), attackHit.unmodifiedDamage);
-                else if (currentAttack->damage != 0 || currentAttack->damageRand != 0)
-                    printf("%s does %s. %s misses.", name.c_str(), currentAttack->name.c_str(), name.c_str());
+                if (attackHit.unmodifiedSelfDamage > 0)
+                    printf("%s does %s. %s misses its self-damage, but it would've done %i if it weren't for inflictions.\n", name.c_str(), currentAttack->name.c_str(), name.c_str(), attackHit.unmodifiedSelfDamage);
+                else if (currentAttack->selfDamage != 0 || currentAttack->selfDamageRand != 0)
+                    printf("%s does %s. %s misses its self-damage.\n", name.c_str(), currentAttack->name.c_str(), name.c_str());
             }
             ApplyHit(attackHit.selfHit, false);
 
@@ -709,7 +699,7 @@ public:
                 StatusEffect halfTimeInfliction = infliction;
                 halfTimeInfliction.durationLeft = halfTimeInfliction.durationLeft / 2;
                 inflictions.push_back(halfTimeInfliction);
-                printf("Because you blocked get stunned for half as long. Which is in this case %i turn.", halfTimeInfliction.durationLeft);
+                printf("Because you blocked get stunned for half as long. Which is in this case %i turn.\n", halfTimeInfliction.durationLeft);
             }
         }
         inflictionAttackers.insert(inflictionAttackers.end(), hit.inflictions.size(), hit.attacker);
@@ -717,22 +707,18 @@ public:
 
     InflictionResults UpdateInflictions()
     {
+        printf("(%i, %i)\n", inflictions.size(), inflictionAttackers.size());
         int destroyedThisFrame = 0;
 
         vector<int> orinalInflictionAttackers(inflictionAttackers);
 
-        vector<int> damageFromSources(0);
-        damageFromSources.insert(damageFromSources.end(), inflictionAttackers.size(), 0);
+        vector<int> damageFromSources(inflictionAttackers.size());
 
-        vector<string> respectiveNames(0);
-        respectiveNames.insert(respectiveNames.end(), inflictionAttackers.size(), "");
-
+        vector<string> respectiveNames(inflictionAttackers.size());
         for (int i = 0; i < inflictions.size(); i++)
-        {
             respectiveNames[i] = inflictions[i].Name();
-        }
 
-        for (int i = 0; i < inflictions.size(); i++)
+        for (int i = 0; i < inflictions.size() + destroyedThisFrame; i++)
         {
             int damage = inflictions[i - destroyedThisFrame].Update();
             health -= damage;
@@ -743,7 +729,7 @@ public:
                 if (damage > 0)
                     printf("%s's %s infliction has been destroyed but it did %i damage this turn.\n", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str(), damage);
                 else
-                    printf("%s's %s infliction has been destroyed no damage this turn.", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str());
+                    printf("%s's %s infliction has been destroyed and it did no damage this turn.\n", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str());
                 inflictions.erase(inflictions.begin() + i - destroyedThisFrame);
                 inflictionAttackers.erase(inflictionAttackers.begin() + i - destroyedThisFrame);
                 destroyedThisFrame += 1;
@@ -934,8 +920,9 @@ It does high damage, but does all of it's damage upfront but does enough damage 
 void End()
 {
     restart = true;
-    printf("You have been slain.\n%s\nPress 'enter' on your keyboard to start a new game. :)", player.currentDeathMessage.c_str());
-    cin;
+    printf("You have been slain.\n%s\nPress 'enter' on your keyboard to start a new game. :)\n\n\n", player.currentDeathMessage.c_str());
+    string ignore;
+    std::getline(cin, ignore);
 }
 
 
@@ -958,12 +945,9 @@ Revived by this sudden revelation that could help you save Misty, you get comfor
 
     for (int i = 0; i < library.size(); i++)
     {
-        bool nextPage = false;
-
         bool correctlyEnteredCode = false;
         for (int j = 0; !correctlyEnteredCode; j = (j % library[i].size() + library[i].size()) % library[i].size())
         {
-            bool userEnterCode = false;
             printf("%s", library[i][j].c_str());
             string next = Input("Do you want to go to the 'next' verse or 'enter' the code or go 'back' to the original page: ");
             while (next != "next" && next != "enter" && next != "back")
@@ -976,14 +960,13 @@ Revived by this sudden revelation that could help you save Misty, you get comfor
             {
                 j--;
             }
-            else while (!userEnterCode)
+            else while (!correctlyEnteredCode)
             {
                 string code = Input("Enter the code (or type 'go back to page' if you need to check again): ");
                 if (code == finalCodes[i])
                 {
-                    userEnterCode = true;
+                    correctlyEnteredCode = true;
                     printf("You got it!");
-                    nextPage = true;
                 }
                 else if (code == "go back to page")
                     break;
@@ -1041,7 +1024,7 @@ of what the number is, and try to add up to the sum of it (keep in mind you'll h
 
 void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<string>> specialEnding)
 {
-    bool specialFightEnding = false;
+    specialFightEnding = false;
     bool fightOn = true;
     bool fightFrameOne = true;
     int target = 0;
@@ -1065,14 +1048,16 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
             player.weapon.SwitchAttacks("Do you want to use ", false);
         }
 
+        Sleep();
+        printf("\n++++++++++++++++\n\n");
 
-        string dialogue = "'dodge' or 'attack' to continue your current attack or 'switch' your attack";
+        bool spare = player.weapon.CurrentAttack()->name == "spare";
+        string dialogue = "'dodge' or '" + string(spare? "spare" : "attack") + "' to continue your current attack or 'switch' your attack";
         if (enemies.size() >= 2)
             dialogue += " or 'change' targets from " + enemies[target]->name;
         dialogue += "? ";
         string prompt = Input(dialogue);
-
-        while (prompt != "dodge" && prompt != "attack" && prompt != "switch" && (!(enemies.size() > 1 && prompt == "change")))
+        while (prompt != "dodge" && ((prompt != "spare" && spare) || (prompt != "attack" && !spare)) && prompt != "switch" && (!(enemies.size() > 1 && prompt == "change")))
             prompt = Input("That won't work this time! " + dialogue);
 
 
@@ -1106,7 +1091,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                             enemies[i]->health = std::min(enemies[i]->maxHealth, enemies[i]->health + heal);
                         }
                         player.ApplyHit(Hit(damageDelt, tr.hit.inflictions, i), true);
-                        printf("You dodged the attack and took %i damage instead of taking %i damage!", blockedDamage, unblockedDamage);
+                        printf("You dodged the attack and took %i damage instead of taking %i damage!\n", blockedDamage, unblockedDamage);
                     }
                     else
                         printf("%s did not attack this round as they were stunned.\n", enemies[i]->name.c_str());
@@ -1133,7 +1118,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                     }
                     else
                     {
-                        printf("%s did not attack this round as they were stunned.", enemies[i]->name.c_str());
+                        printf("%s did not attack this round as they were stunned.\n", enemies[i]->name.c_str());
                         printf("");
                     }
                 }
@@ -1159,12 +1144,12 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                 int heal = static_cast<int>(floorf(ir.damageFromSources[i] * enemies[ir.originalAttackers[i]]->leech));
                 if (heal != 0)
                 {
-                    printf("%s heal's off of you for %i because of %s.", enemies[ir.originalAttackers[i]]->name.c_str(), heal, ir.names[i].c_str());
+                    printf("%s heal's off of you for %i because of %s.\n", enemies[ir.originalAttackers[i]]->name.c_str(), heal, ir.names[i].c_str());
                     enemies[ir.originalAttackers[i]]->health = std::min(enemies[ir.originalAttackers[i]]->maxHealth, enemies[ir.originalAttackers[i]]->health + heal);
                 }
             }
         }
-        else if (prompt == "attack")
+        else if (prompt == "attack" || prompt == "spare")
         {
             printf("");
             for (int i = 0; i < enemies.size(); i++)
@@ -1188,8 +1173,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                 }
                 else
                 {
-                    printf("%s did not attack this round as they were stunned.", enemies[i]->name.c_str());
-                    printf("");
+                    printf("%s did not attack this round as they were stunned.\n", enemies[i]->name.c_str());
                 }
             }
 
@@ -1201,27 +1185,31 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                     int heal = static_cast<int>(floor(ir.damageFromSources[j] * player.weapon.leech));
                     if (heal != 0)
                     {
-                        printf("You heal off of %s for %i because of %s.", enemies[i]->name.c_str(), heal, ir.names[j].c_str());
+                        printf("You heal off of %s for %i because of %s.\n", enemies[i]->name.c_str(), heal, ir.names[j].c_str());
                         player.health = std::min(player.maxHealth, player.health + heal);
                     }
-                    printf("");
                 }
             }
 
             if (!player.IsStunned())
             {
-                if (spareable && player.weapon.CurrentAttack()->name == "spare")
+                if (spare)
                 {
-                    bool spareSucceeds = RandRange(1, 3) == 3;
-                    if (spareSucceeds)
+                    if (spareable)
                     {
-                        printf("You attempt to spare and are successful!");
-                        specialFightEnding = true;
-                        specialFightEndingMonsters = enemies;
-                        fightOn = false;
-                        break;
+                        bool spareSucceeds = RandRange(1, 3) == 3;
+                        if (spareSucceeds)
+                        {
+                            printf("You attempt to spare and are successful!\n");
+                            specialFightEnding = true;
+                            specialFightEndingMonsters = enemies;
+                            fightOn = false;
+                            break;
+                        }
+                        printf("You attempt to spare and are unsuccessful.\n");
                     }
-                    printf("You attempt to spare and are unsuccessful.");
+                    else
+                        printf("It seems that this foe does not want to be spared.\n");
                 }
                 else
                 {
@@ -1240,7 +1228,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                 int heal = static_cast<int>(floorf(ir.damageFromSources[i] * enemies[ir.originalAttackers[i]]->leech));
                 if (heal != 0)
                 {
-                    printf("%s heal's off of you for %i because of %s.", enemies[ir.originalAttackers[i]]->name.c_str(), heal, ir.names[i].c_str());
+                    printf("%s heal's off of you for %i because of %s.\n", enemies[ir.originalAttackers[i]]->name.c_str(), heal, ir.names[i].c_str());
                     enemies[ir.originalAttackers[i]]->health = std::min(enemies[ir.originalAttackers[i]]->maxHealth, enemies[ir.originalAttackers[i]]->health + heal);
                 }
             }
@@ -1272,30 +1260,30 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
         }
 
         int enemiesRemovedThisFrame = 0;
-        for (int i = 0; i < enemies.size(); i++)
+        for (int i = 0; i < enemies.size() + enemiesRemovedThisFrame; i++)
             if (enemies[i - enemiesRemovedThisFrame]->health <= 0)
             {
-                printf("%s has been defeated.", enemies[i - enemiesRemovedThisFrame]->name.c_str());
+                printf("%s has been defeated!\n", enemies[i - enemiesRemovedThisFrame]->name.c_str());
 
                 if (enemies.size() <= 1)
                 {
-                    printf("You won!");
+                    printf("You won!\n");
                     fightOn = false;
                     break;
                 }
 
                 int inflictionsRemovedThisFrame = 0;
-                for (int j = 0; j < player.inflictionAttackers.size(); j++)
+                for (int j = 0; j < player.inflictionAttackers.size() + inflictionsRemovedThisFrame; j++)
                 {
                     if (player.inflictionAttackers[j - inflictionsRemovedThisFrame] == i - enemiesRemovedThisFrame)
                     {
-                        printf("%s has worn off.", player.inflictions[j - inflictionsRemovedThisFrame].Name().c_str());
+                        printf("%s has worn off.\n", player.inflictions[j - inflictionsRemovedThisFrame].Name().c_str());
                         player.inflictionAttackers.erase(player.inflictionAttackers.begin() + j - inflictionsRemovedThisFrame);
                         player.inflictions.erase(player.inflictions.begin() + j - inflictionsRemovedThisFrame);
                         inflictionsRemovedThisFrame++;
                     }
                     else if (player.inflictionAttackers[j - inflictionsRemovedThisFrame] > i - enemiesRemovedThisFrame)
-                        player.inflictionAttackers[j - inflictionsRemovedThisFrame] -= 1;
+                        player.inflictionAttackers[j - inflictionsRemovedThisFrame]--;
                 }
                 enemies.erase(enemies.begin() + i - enemiesRemovedThisFrame);
                 enemiesRemovedThisFrame++;
@@ -1318,16 +1306,16 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                     else
                         printableCombinedEnemyNames += " and the " + enemies[1]->name;
                 }
-                else
+                else if (enemies.size() > 2)
                 {
                     for (int i = 1; i < enemies.size() - 1; i++)
-                        printableCombinedEnemyNames += ", " + enemies[i]->name;
-                    printableCombinedEnemyNames += ", and the" + enemies[enemies.size() - 1]->name;
+                        printableCombinedEnemyNames += ", the " + enemies[i]->name;
+                    printableCombinedEnemyNames += ", and the " + enemies[enemies.size() - 1]->name;
                 }
 
                 bool hasHave = enemies.size() > 1; // false = has, true = have;
 
-                printf("The %s %s chosen to stop fighting.", printableCombinedEnemyNames.c_str(), hasHave ? "have" : "has");
+                printf("The %s %s chosen to stop fighting.\n", printableCombinedEnemyNames.c_str(), hasHave ? "have" : "has");
 
                 fightOn = false;
                 specialFightEnding = true;
@@ -1359,7 +1347,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
 
             bool hasHave = enemies.size() > 1; // false = has, true = have;
 
-            printf("The %s %s chosen to stop fighting.", printableCombinedEnemyNames.c_str(), hasHave ? "have" : "has");
+            printf("The %s %s chosen to stop fighting.\n", printableCombinedEnemyNames.c_str(), hasHave ? "have" : "has");
             fightOn = false;
             specialFightEnding = true;
             specialFightEndingMonsters = enemies;
@@ -1379,7 +1367,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
     player.inflictions.clear();
     player.inflictionAttackers.clear();
     player.health = std::min(player.maxHealth, player.health + 50);
-    printf("You end the fight with %i health.", player.health);
+    printf("You end the fight with %i health.\n", player.health);
 }
 
 
@@ -1660,24 +1648,29 @@ string Home()
 
 const char* introMessages[]{ "As you walk past the village tavern, a drunken ogre unfortunately \
 mistakes you for the same villager that stole his favorite gold coin, \
-and pulls out his rusty dagger to take it back.\n", "After walking through the forest some more, you come across a \
+and pulls out his rusty dagger to take it back.\n",
+"After walking through the forest some more, you come across a \
 clearing that gives you a clear view of the castle where Misty is being held. \
 As you stop to drink from your canteen, a goblin jumps out of the bushes and \
 steals your pack! Goblins were hit especially hard by the last war, but you \
-also know that that doesn't excuse it from stealing your stuff.\n", "The castle doesn't seem so far now, which gives you a glimpse of hope \
+also know that that doesn't excuse it from stealing your stuff.\n",
+"The castle doesn't seem so far now, which gives you a glimpse of hope \
 that Misty can be saved. That hope quickly comes crashing down when you see a horde of werewolves descend from the dark depths of the \
-the tree line, and you sprint towards the castle in hopes of finding safety from the hungry monsters.\n", "The sun starts to set, and you decide that you must find a nice place to hit the hay for the night. There are only two places available: \
+the tree line, and you sprint towards the castle in hopes of finding safety from the hungry monsters.\n",
+"The sun starts to set, and you decide that you must find a nice place to hit the hay for the night. There are only two places available: \
 a small and unassuming cave that offers shelter at the expense of not knowing whether or not an animal ALSO considers the cave its home, \
-and an abandoned watchtower that accentuates the damaging effects of the past war.\n", "Being alive for this long is very commendable, \
+and an abandoned watchtower that accentuates the damaging effects of the past war.\n",
+"Being alive for this long is very commendable, \
 so you pat yourself on the back as you cross a boring old bridge. You actually notice how distinctly boring this bridge is, \
 and voice your distaste of the structure. As you do this, a rumbling can be heard from under you, and as you recover from the friction, \
 a gross troll appears in front of you, and you're able to notice that she did NOT approve of your comment, and lets you know just as much.\n",
 "After going through a whopping SEVEN possibly deadly levels, you've finally reached the castle, well, correction- castle entrance. The gate is \
 still intact, although the lever used to open the hefty doors is of course missing, so you begin to look around for a solution to this most \
-coincidental of situations.\n", "Finding the sewers was easy, but actually navigating through the dense masses of questionable matter proves difficult. \
-As you see a shimmer of light at the end of the tunnel, something large and hairy brushes past your leg, and as you question what exactly that could've been, \
-a freakishly large mutated rat jumps out of the water and tries to lunge at you,\
-but thankfully misses, and you retrieve your weapon from its holster and get ready to battle this rage-filled rodent." };
+coincidental of situations.\n",
+"Finding the sewers was easy, but actually navigating through the dense masses of questionable matter proves difficult. \
+As you see a shimmer of light at the end of the tunnel, something large and hairy brushes past your leg, and as you question what\
+exactly that could've been, a freakishly large mutated rat as well as its two offsprings jump out of the water and try to lunge at you,\
+but thankfully miss, and you retrieve your weapon from its holster and get ready to battle these rage-filled rodents." };
 const char* outroMessages[]{ "The ogre stumbles to the ground, but before you can search him \
 for anything valuable, a guard approaches from the distance, and \
 you pick up the pace to the village exit where you can continue your quest. ", "The goblin collapses, and you take pity on the creature \
@@ -1824,15 +1817,16 @@ on your feet and pull out your weapon.");
     }
     PrintOutro();
 #pragma endregion
-#pragma region Treasure and goblins
+#pragma region Treasure
     Sleep();
     printf("\n\n++++++++++++++++\n\n");
     DeadlyTreasure();
     if (restart)
         return;
-
+#pragma endregion
+#pragma region Goblins
     Sleep();
-    printf("\n++++++++++++++++\n");
+    printf("\n\n++++++++++++++++\n\n");
     location = "forest";
     player.currentDeathMessage = "Don't forget that you can 'change' targets when there's more than 1 foe.";
     printf(introMessages[1]);
@@ -1910,15 +1904,17 @@ at the medieval gym, you fail and fall face first into some *very* sharp thorns"
         }
     }
 #pragma endregion
-#pragma region Cave and Watchtower
+#pragma region River
     Sleep();
-    printf("\n++++++++++++++++\n");
+    printf("\n\n++++++++++++++++\n\n");
     location = "river";
     printf(introMessages[2]);
     RiverEscape();
     if (restart) return;
+#pragma endregion
+#pragma region Cave and Watchtower
     Sleep();
-    printf("\n++++++++++++++++\n");
+    printf("\n\n++++++++++++++++\n\n");
     location = "cave/watchtower";
     printf(introMessages[3]);
     string caveWatchtower = Input("Do you take shelter in the 'cave' or the 'watchtower'? ");
@@ -1942,11 +1938,11 @@ at the medieval gym, you fail and fall face first into some *very* sharp thorns"
     player.currentDeathMessage = "Don't forget that splash will weaken your attacks by a fixed amount, and that it doesn't effect status effects.";
     printf(introMessages[4]);
     printf("'I'm tired of you rude humans criticizing my bridge upkeep skills!:( Gah! All this yelling has got me thirsty,\n\
-would you happen to have anything that could satiate my thirst?");
+would you happen to have anything that could satiate my thirst?\n");
     if (potionTroll == true)
     {
         printf("You suddenly remember that you have that potion from the cave, as well as the oddly specific dream that turned out\n\
-to manifest itself into reality... Anyway, you think about if you should give the troll the potion or keep it for yourself.");
+to manifest itself into reality... Anyway, you think about if you should give the troll the potion or keep it for yourself.\n");
         string bargainFight = Input("Do you 'give' the troll the potion or 'keep' it for yourself? ");
         while (bargainFight != "give" && bargainFight != "keep")
             bargainFight = Input("That won't work this time! Do you 'give' the troll the potion or 'keep' it for yourself? ");
@@ -1955,7 +1951,7 @@ to manifest itself into reality... Anyway, you think about if you should give th
             brutalEnding = false;
             printf("You quickly give the troll the potion, and she monstrously consumes its contents before proceeding to burp in your\n\
 face with a satisfied grin on her face. 'WOW! I don't know what kind of stuff was in that, but I think I'm gonna take a nap for a little bit.\n\
-DON'T GO ANYWHERE HUMAN, OR ELS-', is all the troll can say before the potion's effects fully take place, and she falls onto the bridge and starts snoring loudly.");
+DON'T GO ANYWHERE HUMAN, OR ELS-', is all the troll can say before the potion's effects fully take place, and she falls onto the bridge and starts snoring loudly.\n");
             StringWord(emptyStr);
             string stayGo = Input("Maybe it's because you felt bad for disrespecting the troll's bridge, or more likely because you're crazy, but you\n\
 you hesitate before going and wonder whether or not you should 'stay' and see what the troll wants from you, or 'go' because the princess stuck in an \
@@ -1969,25 +1965,25 @@ the troll wakes up and looks considerably more happy. 'Heya pal! Look I'm sorry 
 human, werewolf, goblin, what have you. So, as a token of my apology, I'll offer you a job that'll consist of helping me keep this place spick-and-span...\n\
 not at all because I get sorta lonely out here and could use another person to talk to... So whaddaya say?' Well, not one to turn down an offer as rare as this, you\n\
 accept the troll's offer, but remind her that you still have a girl to save, and she nods her head understandably.\n\
-You find out the troll's name is Samantha, and wish her well as you finally cross the bridge to continue your quest.");
+You find out the troll's name is Samantha, and wish her well as you finally cross the bridge to continue your quest.\n");
                 trackEndings.push_back("Do you want to help keep the bridge clean with 'Samantha' the troll?");
                 endingTwo = true;
             }
             else
                 printf("You decide that the troll was probably just saying all of that due to her inebriated state, and cross the bridge\n\
-quietly to continue your journey.");
+quietly to continue your journey.\n");
         }
         else if (bargainFight == "keep")
         {
             printf("You decide to be greedy and admittedly sort of dumb so as not to rid yourself of extra weight, and it comes back to bite you. 'WOW! So first\n\
 you disrespect my bridge, and then you don't even give me something for my dehydration! This won't do! I'm going to have to teach you a lesson in manners!\n\
 Quickly, you ask if there's a riddle you can try to solve in order to avoid a fight, but the troll's mind is already made up, and in fact this seems to\n\
-make her even more angry, which doesn't help things in the slightest. You ready your weapon and prepare to fight the burly creature.");
+make her even more angry, which doesn't help things in the slightest. You ready your weapon and prepare to fight the burly creature.\n");
             FightSequence({ troll }, false, { {} });
             if (restart) return;
             PrintOutro();
             printf("P.S., while fighting the troll, the potion broke in your bag, so it's of no use to you now, and you think for a second how much \
-better that situation could've turned out if you would've given the troll the potion in the first place, but ah whatever it's just a game, morals don't matter.");
+better that situation could've turned out if you would've given the troll the potion in the first place, but ah whatever it's just a game, morals don't matter.\n");
         }
     }
     else if (potionTroll == false)
@@ -1996,7 +1992,7 @@ better that situation could've turned out if you would've given the troll the po
 you blank out, and the troll notices this. 'WOW! So first you disrespect my bridge, and then you don't even give me something for my dehydration!\n\
 This won't do! I'm going to have to teach you a lesson in manners!\
 Quickly, you ask if there's a riddle you can try to solve in order to avoid a fight, but the troll's mind is already made up, and in fact this seems to\n\
-make her even more angry, which doesn't help things in the slightest. You ready your weapon and prepare to fight the burly creature.");
+make her even more angry, which doesn't help things in the slightest. You ready your weapon and prepare to fight the burly creature.\n");
         FightSequence({ troll }, false, { {} });
         if (restart) return;
         PrintOutro();
@@ -2058,7 +2054,7 @@ In one of the drawers, you find a damaged note that warns its readers to be wear
     printf("\n\n++++++++++++++++\n\n");
 
     printf("After leaving the %s in the morning, you turn the corner, but come face to face with a hideously disfigured mutant that shoves you to the ground before\n\
-exclaiming:'LeAvE, RiGhT nOw.' Obviously, you don't move, and the mutant spits on the ground before getting into a battle stance, and as such you do the same.", home.c_str());
+exclaiming:'LeAvE, RiGhT nOw.' Obviously, you don't move, and the mutant spits on the ground before getting into a battle stance, and as such you do the same.\n", home.c_str());
     location = "random street";
     player.currentDeathMessage = "The mutants heavy punch can stun you if you're not careful, it may be best to dodge it.";
     FightSequence({ mutant }, false, { {} });
@@ -2094,8 +2090,8 @@ but this definitely takes the cake. You dust yourself off, and resume walking ar
     player.currentDeathMessage = "Maybe you should try to come here with more health, or try to outrun them.";
     printf("Before beginning your attack on the rat, you remember that you used to take\n\
 medieval track and field at your former academy, and ponder over whether or not you should see if your skills are still in tip-top shape.\n\
-The little voice in your head warns you, though, that if your health has not been increased\n\
-past the default 100 value, you might not be able to outrun the rambunctious rodent after all.");
+The little voice in your head warns you, though, that if your health has not been increased\
+past the default 100 value, you might not be able to outrun the rambunctious rodent after all.\n");
     string outrunFight = Input("Do you 'fight' or 'outrun' the rat? ");
     while (outrunFight != "fight" && outrunFight != "outrun")
         outrunFight = Input("That won't work this time! Do you 'fight' or 'outrun' the rat? ");
@@ -2498,6 +2494,8 @@ I just came by to tell you that I heard a rumor that some sorcerer can get far m
 
 int main()
 {
+    Term::Terminal term(false);
+    Term::terminal_title("M");
     FindSettings();
     while (restart)
         Run();
