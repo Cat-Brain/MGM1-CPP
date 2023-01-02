@@ -76,8 +76,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="cpp-terminal\version.hpp.in" />
     <None Include="..\x64\Debug\M.exe" />
     <None Include="..\x64\Debug\M.pdb" />
+    <None Include="cpp-terminal\version.hpp.in">
+      <Filter>cpp-terminal</Filter>
+    </None>
+    <None Include="..\x64\Debug\MGM1.exe" />
+    <None Include="..\x64\Debug\MGM1.pdb" />
   </ItemGroup>
 </Project>
