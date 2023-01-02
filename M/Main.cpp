@@ -1762,7 +1762,8 @@ I just came by to tell you that I heard a rumor that some sorcerer can get far m
     {
         printf("\n\n\
 You upon defeating the dragon and harnessing his powers for yourself, you get ubrubtly teleported to a mysterious and colorful room.\n\
-'You think that I'll let my kingdom decend into tyranny oncemore?' The wizard says from afar");
+'You think that I'll let my kingdom decend into tyranny oncemore?' The wizard says from afar, I'll be back\n\n\
+And just like that you were back in the castle, as if nothing had happened.\n");
     }
 #pragma endregion
 #pragma region New run
