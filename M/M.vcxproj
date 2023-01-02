@@ -164,6 +164,8 @@
     <ClInclude Include="Infliction.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\x64\Debug\M.exe" />
+    <None Include="..\x64\Debug\M.pdb" />
     <None Include="cpp-terminal\version.hpp.in" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
