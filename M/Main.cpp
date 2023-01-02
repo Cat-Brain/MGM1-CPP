@@ -13,7 +13,7 @@ I hope that you enjoy this experience, and if you want, maybe you'll even mod th
 
 bool restart = true;
 bool specialFightEnding = false;
-vector<Enemy*> specialFightEndingMonsters(0);
+vector<Entity*> specialFightEndingMonsters(0);
 Settings currentSettings;
 vector<char> currentStrings(0);
 int divByFour[6]{ 8, 12, 16, 20, 24, 28 };
@@ -27,50 +27,50 @@ string emptyStr;
 //The syntax for an attacks is :
 //Attack([Status effects], [chance of each status effect happening], damage, damage randomness(how far from the original value the actual value can be), [self inflictions], [self infliction procs], self damage, self damage randomness, [summons], turns to do, name)
 //First up is the attacks that are required to be early.
-Attack fireBreath = Attack({ {BURNING, 2} }, { 100 }, 0, 0, {}, {}, 0, 0, {}, 3, "fire breath");
-Attack heavyBite = Attack({}, {}, 50, 0, {}, {}, 0, 0, {}, 4, "heavy bite");
+Attack fireBreath{ { {BURNING, 2} }, { 100 }, 0, 0, {}, {}, 0, 0, {}, 3, "fire breath" };
+Attack heavyBite{ {}, {}, 50, 0, {}, {}, 0, 0, {}, 4, "heavy bite" };
 //Enemies that must be declared early.
-Enemy joshroHead = Enemy(25, 50, {fireBreath, heavyBite}, "Joshro Head", 0.5f);
+Entity joshroHead{ 25, 50, {fireBreath, heavyBite}, "Joshro Head", 0.5f };
 //Normal attacks.
-Attack clubBash = Attack({ {STUN, 2} }, { 100 }, 25, 10, {}, {}, 0, 0, {}, 3, "club bash");
-Attack punch = Attack({}, {}, 15, 15, {}, {}, 0, 0, {}, 1, "punch");
-Attack heavyPunch = Attack({ {STUN, 2} }, { 75 }, 25, 25, {}, {}, 0, 0, {}, 2, "heavy punch");
-Attack quickStab = Attack({ {POISON, 3} }, { 50 }, 5, 5, {}, {}, 0, 0, {}, 1, "quick stab");
-Attack rockThrow = Attack({ {STUN, 1} }, { 25 }, 5, 5, {}, {}, 0, 0, {}, 1, "rock throw");
-Attack slimeHug = Attack({ {DEADLY_HUG, 3} }, { 100 }, 0, 0, {}, {}, 0, 0, {}, 1, "slime hug");
-Attack slimeSpike = Attack({ {BLEED, 3} }, { 100 }, 5, 0, {}, {}, 0, 0, {}, 1, "slime spike");
-Attack arrowShoot = Attack({ {BURNING, 3}, {BURNING, 3}, {POISON, 8} }, { 50, 50, 100 }, 35, 10, {}, {}, 0, 0, {}, 3, "shoot arrow");
-Attack chokeHold = Attack({ {STUN, 1} }, { 100 }, 5, 5, {}, {}, 0, 0, {}, 1, "choke hold");
-Attack deepCut = Attack({ {BLEED, 15}, {BLEED, 15}, {BLEED, 15} }, { 100, 50, 25 }, 0, 0, {}, {}, 0, 0, {}, 1, "deep cut");
-Attack finisher = Attack({}, {}, 20, 0, {}, {}, 0, 0, {}, 1, "finisher");
-Attack heavyBlow = Attack({}, {}, 100, 0, {}, {}, 0, 0, {}, 5, "heavy blow");
-Attack quickAttack = Attack({}, {}, 35, 0, {}, {}, 0, 0, {}, 2, "quick attack");
-Attack heaviestBlow = Attack({}, {}, 125, 0, {}, {}, 0, 0, {}, 6, "heaviest blow");
-Attack splash = Attack({ {WET, 5} }, { 100 }, 3, 3, {}, {}, 0, 0, {}, 1, "splash");
-Attack quickClubBash = Attack({ {STUN, 2} }, { 75 }, 10, 10, {}, {}, 0, 0, {}, 2, "quick club bash");
-Attack bite = Attack({ {POISON, 4}, {BLEED, 4} }, { 5, 5 }, 5, 5, {}, {}, 0, 0, {}, 2, "bite");
-Attack scratch = Attack({ {BLEED, 4} }, { 25 }, 15, 5, {}, {}, 0, 0, {}, 1, "scratch");
-Attack spare = Attack({}, {}, 0, 0, {}, {}, 0, 0, {}, 1, "spare");
-Attack growHead = Attack({}, {}, 0, 0, {}, {}, 0, 0, { &joshroHead }, 4, "grow head");
-Attack ultraFireBreath = Attack({ {BURNING, 3} }, { 100 }, 0, 0, {}, {}, 0, 0, {}, 1, "ultra fire breath");
+Attack clubBash{ { {STUN, 2} }, { 100 }, 25, 10, {}, {}, 0, 0, {}, 3, "club bash" };
+Attack punch{ {}, {}, 15, 15, {}, {}, 0, 0, {}, 1, "punch" };
+Attack heavyPunch{ { {STUN, 2} }, { 75 }, 25, 25, {}, {}, 0, 0, {}, 2, "heavy punch" };
+Attack quickStab{ { {POISON, 3} }, { 50 }, 5, 5, {}, {}, 0, 0, {}, 1, "quick stab" };
+Attack rockThrow{ { {STUN, 1} }, { 25 }, 5, 5, {}, {}, 0, 0, {}, 1, "rock throw" };
+Attack slimeHug{ { {DEADLY_HUG, 3} }, { 100 }, 0, 0, {}, {}, 0, 0, {}, 1, "slime hug" };
+Attack slimeSpike{ { {BLEED, 3} }, { 100 }, 5, 0, {}, {}, 0, 0, {}, 1, "slime spike" };
+Attack arrowShoot{ { {BURNING, 3}, {BURNING, 3}, {POISON, 8} }, { 50, 50, 100 }, 35, 10, {}, {}, 0, 0, {}, 3, "shoot arrow" };
+Attack chokeHold{ { {STUN, 1} }, { 100 }, 5, 5, {}, {}, 0, 0, {}, 1, "choke hold" };
+Attack deepCut{ { {BLEED, 15}, {BLEED, 15}, {BLEED, 15} }, { 100, 50, 25 }, 0, 0, {}, {}, 0, 0, {}, 1, "deep cut" };
+Attack finisher{ {}, {}, 20, 0, {}, {}, 0, 0, {}, 1, "finisher" };
+Attack heavyBlow{ {}, {}, 100, 0, {}, {}, 0, 0, {}, 5, "heavy blow" };
+Attack quickAttack{ {}, {}, 35, 0, {}, {}, 0, 0, {}, 2, "quick attack" };
+Attack heaviestBlow{ {}, {}, 125, 0, {}, {}, 0, 0, {}, 6, "heaviest blow" };
+Attack splash{ { {WET, 5} }, { 100 }, 3, 3, {}, {}, 0, 0, {}, 1, "splash" };
+Attack quickClubBash{ { {STUN, 2} }, { 75 }, 10, 10, {}, {}, 0, 0, {}, 2, "quick club bash" };
+Attack bite{ { {POISON, 4}, {BLEED, 4} }, { 5, 5 }, 5, 5, {}, {}, 0, 0, {}, 2, "bite" };
+Attack scratch{ { {BLEED, 4} }, { 25 }, 15, 5, {}, {}, 0, 0, {}, 1, "scratch" };
+Attack spare{ {}, {}, 0, 0, {}, {}, 0, 0, {}, 1, "spare" };
+Attack growHead{ {}, {}, 0, 0, {}, {}, 0, 0, { &joshroHead }, 4, "grow head" };
+Attack ultraFireBreath{ { {BURNING, 3} }, { 100 }, 0, 0, {}, {}, 0, 0, {}, 1, "ultra fire breath" };
 
 //The syntax for enemies is :
 //Enemy(start health, max health, [attack1, attack2, ...], "name", leech amount 0 to 1 work best
-Enemy joshrosBody = Enemy(300, 300, { growHead }, "Joshro's Body", 0.0);
-Enemy ogre = Enemy(100, 100, { clubBash, punch }, "Ogre", 0.0);
-Enemy goblin = Enemy(100, 100, { quickStab, rockThrow }, "Goblin", 0.0);
-Enemy slime = Enemy(25, 50, { slimeHug }, "Pet Slime", 1.0);
-Enemy troll = Enemy(125, 125, { quickClubBash, splash }, "troll", 0.0);
-Enemy mutant = Enemy(200, 200, { punch, heavyPunch }, "mutant", 0.0);
-Enemy rat = Enemy(100, 200, { bite, scratch }, "Rat", 0.25);
-Enemy babyRat = Enemy(25, 50, { bite, scratch, splash }, "Baby Rat", 0.5);
-Enemy guard = Enemy(200, 200, { heavyBlow, quickAttack }, "Unloyal Guard", 0.0);
+Entity joshrosBody{ 300, 300, { growHead }, "Joshro's Body", 0.0 };
+Entity ogre{ 100, 100, { clubBash, punch }, "Ogre", 0.0 };
+Entity goblin{ 100, 100, { quickStab, rockThrow }, "Goblin", 0.0 };
+Entity slime{ 25, 50, { slimeHug }, "Pet Slime", 1.0 };
+Entity troll{ 125, 125, { quickClubBash, splash }, "troll", 0.0 };
+Entity mutant{ 200, 200, { punch, heavyPunch }, "mutant", 0.0 };
+Entity rat{ 100, 200, { bite, scratch }, "Rat", 0.25 };
+Entity babyRat{ 25, 50, { bite, scratch, splash }, "Baby Rat", 0.5 };
+Entity guard{ 200, 200, { heavyBlow, quickAttack }, "Unloyal Guard", 0.0 };
 
-Weapon bow = Weapon({ arrowShoot, chokeHold }, "Bow", 0.0);
-Weapon axe = Weapon({ deepCut, finisher }, "Axe", 0.0);
-Weapon sword = Weapon({ heavyBlow, quickAttack }, "Sword", 0.0);
-Weapon ogreInABottle = Weapon({ clubBash, punch }, "Ogre in a Bottle", 0.5);
-Weapon python = Weapon({ heaviestBlow, quickAttack }, "Python", 0.5);
+Weapon bow{ { arrowShoot, chokeHold }, "Bow", 0.0 };
+Weapon axe{ { deepCut, finisher }, "Axe", 0.0 };
+Weapon sword{ { heavyBlow, quickAttack }, "Sword", 0.0 };
+Weapon ogreInABottle{ { clubBash, punch }, "Ogre in a Bottle", 0.5 };
+Weapon python{ { heaviestBlow, quickAttack }, "Python", 0.5 };
 
 
 Player player;
@@ -255,28 +255,28 @@ of what the number is, and try to add up to the sum of it (keep in mind you'll h
 
 
 
-void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<string>> specialEnding)
+void FightSequence(vector<Entity> enemyTypes, bool spareable, vector<vector<string>> specialEnding)
 {
     specialFightEnding = false;
     bool fightOn = true;
     bool fightFrameOne = true;
     int target = 0;
 
-    vector<Enemy*> enemies = vector<Enemy*>(enemyTypes.size());
+    vector<Entity*> enemies = vector<Entity*>(enemyTypes.size());
     for (int i = 0; i < enemies.size(); i++)
-        enemies[i] = new Enemy(enemyTypes[i]);
+        enemies[i] = new Entity(enemyTypes[i]);
 
     while (fightOn)
     {
         printf("");
-        for (Enemy* enemy : enemies)
+        for (Entity* enemy : enemies)
             printf("%s's health: %i\n", enemy->name.c_str(), enemy->health);
         printf("Max's health: %i\n", player.health);
 
         if (fightFrameOne)
         {
             fightFrameOne = false;
-            for (Enemy* enemy : enemies)
+            for (Entity* enemy : enemies)
                 enemy->FindNewAttack();
             player.weapon.SwitchAttacks("Do you want to use ", false);
         }
@@ -312,7 +312,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                             {
                                 (tr.summons[j])->summoned = true;
                                 printf("%s has birthed a new %s!\n", enemies[i]->name.c_str(), tr.summons[j]->name.c_str());
-                                enemies.push_back(new Enemy(*tr.summons[j]));
+                                enemies.push_back(new Entity(*tr.summons[j]));
                             }
 
                             unblockedDamage += tr.hit.damage;
@@ -345,7 +345,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                         {
                             (tr.summons[j])->summoned = true;
                             printf("%s has birthed a new %s!\n", enemies[i]->name.c_str(), tr.summons[j]->name.c_str());
-                            enemies.push_back(new Enemy(*tr.summons[j]));
+                            enemies.push_back(new Entity(*tr.summons[j]));
                         }
 
                         player.ApplyHit(tr.hit, false);
@@ -402,7 +402,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
                     {
                         (tr.summons[j])->summoned = true;
                         printf("%s has birthed a new %s!\n", enemies[i]->name.c_str(), (tr.summons[j])->name.c_str());
-                        enemies.push_back(new Enemy(*tr.summons[j]));
+                        enemies.push_back(new Entity(*tr.summons[j]));
                     }
 
                     player.ApplyHit(tr.hit, false);
@@ -566,7 +566,7 @@ void FightSequence(vector<Enemy> enemyTypes, bool spareable, vector<vector<strin
             }
 
         bool allSummoned = true;
-        for (Enemy* enemy : enemies)
+        for (Entity* enemy : enemies)
             allSummoned &= enemy->summoned;
 
         if (allSummoned)
@@ -885,6 +885,7 @@ string Home()
         tavernInncottage = Input("That won't work this time! Do you make the 'tavern', 'cottage', or 'inn' your new home? ");
     return tavernInncottage;
 }
+#pragma endregion
 
 
 
@@ -914,35 +915,22 @@ coincidental of situations.\n",
 As you see a shimmer of light at the end of the tunnel, something large and hairy brushes past your leg, and as you question what\
 exactly that could've been, a freakishly large mutated rat as well as its two offsprings jump out of the water and try to lunge at you,\
 but thankfully miss, and you retrieve your weapon from its holster and get ready to battle these rage-filled rodents." };
-const char* outroMessages[]{ "The ogre stumbles to the ground, but before you can search him \
+const char* outroMessages[]{ 
+// 0-Ogre
+"The ogre stumbles to the ground, but before you can search him \
 for anything valuable, a guard approaches from the distance, and \
-you pick up the pace to the village exit where you can continue your quest. ", "The goblin collapses, and you take pity on the creature \
-as you collect your items and continue towards the castle.", "The troll becomes motionless, and after you poke it with your weapon to see if she's still alive, \
+you pick up the pace to the village exit where you can continue your quest. ",
+// 1-Goblin1
+"The goblin collapses, and you take pity on the creature \
+as you collect your items and continue towards the castle.",
+// 2-Goblin2
+"Both goblins collapse, and after questioning your own ethics you continue on your journey; new pet in hand.",
+// 3-Troll
+"The troll becomes motionless, and after you poke it with your weapon to see if she's still alive, \
 gravity finally takes effect, and the troll falls over the side of the bridge into the murky depths below, creating such a splash that the water soaks your hair. \
-You regain your composure, and proceed to start walking along the path again.", "You slay the horrid creature, and continue walking towards the light.", \
-"Both goblins collapse, and after questioning your own ethics you continue on your journey; new pet in hand." };
-
-
-
-
-void PrintOutro()
-{
-    if (location == "village")
-        printf(outroMessages[0]);
-    else if (location == "forest")
-        printf(outroMessages[1]);
-    else if (location == "old bridge")
-        printf(outroMessages[2]);
-    else if (location == "sewers")
-        printf(outroMessages[3]);
-    else if (location == "forest2")
-        printf(outroMessages[4]);
-}
-
-#pragma endregion
-
-
-
+You regain your composure, and proceed to start walking along the path again.",
+// 4-Rats
+"You slay the horrid creature, and continue walking towards the light." };
 
 
 #pragma region Endings
@@ -1058,7 +1046,7 @@ on your feet and pull out your weapon.");
                 return;
         }
     }
-    PrintOutro();
+    printf(outroMessages[0]);
 #pragma endregion
 #pragma region Treasure
     Sleep();
@@ -1081,7 +1069,7 @@ on your feet and pull out your weapon.");
         printf("A Pet Slime also jumps out of the bushes to protect their owner!");
         FightSequence({ goblin, slime }, false, { {} });
         if (restart) return;
-        PrintOutro();
+        printf(outroMessages[1]);
     }
     else if (fightPersuade == "persuade")
     {
@@ -1116,7 +1104,7 @@ You're able to get up, but because of the surprise attack, you've lost valuable 
                 player.health = (int)ceilf(player.health / 2.0f);
                 FightSequence({ goblin, slime }, false, { {"Pet Slime"} });
                 if (restart) return;
-                PrintOutro();
+                printf(outroMessages[1]);
                 player.maxHealth = player.maxHealth * 2;
                 player.health = player.health * 2;
                 if (specialFightEnding)
@@ -1133,7 +1121,7 @@ After doing this, your Slime Pet learns a new skill, '%s'.", oldWeapon.name.c_st
                     player.currentDeathMessage = "Your Pet Slime eats you soon after.";
                     FightSequence({ goblin, goblin }, false, { {} });
                     if (restart) return;
-                    PrintOutro();
+                    printf(outroMessages[2]);
                 }
             }
         }
@@ -1224,7 +1212,7 @@ Quickly, you ask if there's a riddle you can try to solve in order to avoid a fi
 make her even more angry, which doesn't help things in the slightest. You ready your weapon and prepare to fight the burly creature.\n");
             FightSequence({ troll }, false, { {} });
             if (restart) return;
-            PrintOutro();
+            printf(outroMessages[3]);
             printf("P.S., while fighting the troll, the potion broke in your bag, so it's of no use to you now, and you think for a second how much \
 better that situation could've turned out if you would've given the troll the potion in the first place, but ah whatever it's just a game, morals don't matter.\n");
         }
@@ -1238,7 +1226,7 @@ Quickly, you ask if there's a riddle you can try to solve in order to avoid a fi
 make her even more angry, which doesn't help things in the slightest. You ready your weapon and prepare to fight the burly creature.\n");
         FightSequence({ troll }, false, { {} });
         if (restart) return;
-        PrintOutro();
+        printf(outroMessages[3]);
     }
     player.weapon.LearnAttack(splash);
     printf("Before leaving, you let your %s soak in the water, and it seems to absorb it.\n\
@@ -1302,7 +1290,6 @@ exclaiming:'LeAvE, RiGhT nOw.' Obviously, you don't move, and the mutant spits o
     player.currentDeathMessage = "The mutants heavy punch can stun you if you're not careful, it may be best to dodge it.";
     FightSequence({ mutant }, false, { {} });
     if (restart) return;
-    PrintOutro();
     string spareKill = Input("The mutant crashes to the ground, pleading with you to spare it. Do you 'spare' or 'kill' the mutant? ");
     while (spareKill != "spare" && spareKill != "kill")
         spareKill = Input("That won't work this time! Do you 'spare' or 'kill' the mutant? ");
@@ -1319,6 +1306,12 @@ Then your %s learns 'spare'.", player.weapon.name.c_str());
 The mutant shrivels up, and you jump back in horror as the supernatural occurrence unfolds in front of your eyes.\n\
 Death is something you've sort of gotten used to after all of the previous fights you've been in,\n\
 but this definitely takes the cake. You dust yourself off, and resume walking around the town in search of answers.");
+#pragma endregion
+#pragma region Magic Lesson
+    Sleep();
+    printf("\n\n++++++++++++++++\n\n");
+
+    printf("");
 #pragma endregion
 #pragma region Code Find
     Sleep();
@@ -1349,7 +1342,7 @@ past the default 100 value, you might not be able to outrun the rambunctious rod
                 prompt = Input("That won't work this time. Do you want to chase? ('yes' or 'no') ");
             if (prompt == "yes")
             {
-                vector<Enemy> survivorRats = vector<Enemy>(specialFightEndingMonsters.size());
+                vector<Entity> survivorRats = vector<Entity>(specialFightEndingMonsters.size());
                 for (int i = 0; i < survivorRats.size(); i++)
                     survivorRats[i] = *specialFightEndingMonsters[i];
                 FightSequence(survivorRats, false, { {} });
@@ -1365,7 +1358,7 @@ past the default 100 value, you might not be able to outrun the rambunctious rod
                 }
             }
         }
-        PrintOutro();
+        printf(outroMessages[4]);
     }
     else
     {
@@ -1415,7 +1408,7 @@ However, it doesn't fully defeat you when it catches up with you, and as such yo
                         prompt = Input("That won't work this time. Do you want to chase after them? ('yes' or 'no') ");
                     if (prompt == "yes")
                     {
-                        vector<Enemy> survivorRats = vector<Enemy>(specialFightEndingMonsters.size());
+                        vector<Entity> survivorRats = vector<Entity>(specialFightEndingMonsters.size());
                         for (int i = 0; i < survivorRats.size(); i++)
                             survivorRats[i] = *specialFightEndingMonsters[i];
                         FightSequence(survivorRats, false, { {} });
@@ -1429,7 +1422,7 @@ However, it doesn't fully defeat you when it catches up with you, and as such yo
                             printf("Then your %s learns 'spare'.\n", player.weapon.name.c_str());
                             player.weapon.LearnAttack(spare);
                         }
-                        PrintOutro();
+                        printf(outroMessages[4]);
                     }
                 }
             }
@@ -1545,7 +1538,9 @@ you then head to the door separating you from Misty and Joshro...");
     Sleep();
     Sleep();
     player.currentDeathMessage = "You were so close, just keep trying!";
-    FightSequence({ joshrosBody }, false, { {} });
+    Entity joshroHeadSummoned = joshroHead;
+    joshroHeadSummoned.summoned = true;
+    FightSequence({ joshrosBody, joshroHeadSummoned, joshroHeadSummoned }, false, { {} });
     if (restart) return;
 
     if (specialFightEnding)

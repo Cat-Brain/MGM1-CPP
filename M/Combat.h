@@ -33,7 +33,7 @@ public:
 
 
 
-class Enemy;
+class Entity;
 class Attack
 {
 public:
@@ -48,11 +48,11 @@ public:
     int length;
     int timeSinceStart;
     string name;
-    vector<Enemy*> summons;
+    vector<Entity*> summons;
 
     Attack(vector<StatusEffect> procs, vector<int> procChances, int damage, int damageRand,
         vector<StatusEffect> selfProcs, vector<int> selfProcChances, int selfDamage, int selfDamageRand,
-        vector<Enemy*> summons, int length, string name) :
+        vector<Entity*> summons, int length, string name) :
         procs(procs), procChances(procChances), damage(damage), damageRand(damageRand), selfProcs(selfProcs),
         selfProcChances(selfProcChances), selfDamage(selfDamage), selfDamageRand(selfDamageRand), summons(summons),
         length(length), name(name), timeSinceStart(0)
@@ -92,9 +92,9 @@ class TurnReturn
 {
 public:
     Hit hit;
-    vector<Enemy*> summons;
+    vector<Entity*> summons;
 
-    TurnReturn(Hit hit, vector<Enemy*> summons) :
+    TurnReturn(Hit hit, vector<Entity*> summons) :
         hit(hit), summons(summons)
     { }
 
@@ -119,7 +119,7 @@ public:
 
 
 
-class Enemy
+class Entity
 {
 public:
     vector<StatusEffect> inflictions;
@@ -131,14 +131,15 @@ public:
     string name;
     float leech;
     bool summoned;
+    bool ally;
 
-    Enemy(int health, int maxHealth, vector<Attack> attacks, string name, float leech) :
+    Entity(int health, int maxHealth, vector<Attack> attacks, string name, float leech) :
         inflictions(vector<StatusEffect>()), inflictionAttackers(vector<int>()),
         health(health), maxHealth(maxHealth), activeAttack(0),
-        attacks(attacks), name(name), leech(leech), summoned(false)
+        attacks(attacks), name(name), leech(leech), summoned(false), ally(false)
     { }
 
-    Enemy() : Enemy(0, 0, {}, "", 0.0f) { }
+    Entity() : Entity(0, 0, {}, "", 0.0f) { }
 
     Attack* CurrentAttack()
     {
@@ -168,7 +169,7 @@ public:
     TurnReturn TakeTurn(int currentIndex)
     {
         //Hit hit; // REMOVE
-        vector<Enemy*> newSummons = vector<Enemy*>();
+        vector<Entity*> newSummons = vector<Entity*>();
 
         Attack* currentAttack = CurrentAttack();
 
@@ -266,7 +267,7 @@ public:
             respectiveNames[i] = inflictions[i].Name();
         }
 
-        for (int i = 0; i < inflictions.size() + destroyedThisFrame; i++)
+        for (int i = 0; i < orinalInflictionAttackers.size(); i++)
         {
             int damage = inflictions[i - destroyedThisFrame].Update();
             health -= damage;
@@ -278,8 +279,8 @@ public:
                     printf("%s's %s infliction has been destroyed but it did %i damage this turn.\n", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str(), damage);
                 else
                     printf("%s's %s infliction has been destroyed and it did no damage this turn.\n", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str());
-                inflictions.erase(inflictions.begin() + i - destroyedThisFrame);
-                inflictionAttackers.erase(inflictionAttackers.begin() + i - destroyedThisFrame);
+                inflictions.erase(i - destroyedThisFrame + inflictions.begin());
+                inflictionAttackers.erase(i - destroyedThisFrame + inflictionAttackers.begin());
                 destroyedThisFrame += 1;
             }
             else
@@ -424,7 +425,7 @@ public:
 
     TurnReturn TakeTurn()
     {
-        vector<Enemy*> newSummons = vector<Enemy*>();
+        vector<Entity*> newSummons = vector<Entity*>();
 
         Attack* currentAttack = CurrentAttack();
 
