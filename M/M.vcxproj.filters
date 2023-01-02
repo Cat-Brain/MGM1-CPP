@@ -13,53 +13,65 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="cpp-terminal">
+      <UniqueIdentifier>{c35e223a-ba79-4de2-a098-5c76595f101c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cpp-terminal\base.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>cpp-terminal</Filter>
     </ClCompile>
     <ClCompile Include="cpp-terminal\input.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cpp-terminal\prompt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cpp-terminal\window.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>cpp-terminal</Filter>
     </ClCompile>
     <ClCompile Include="cpp-terminal\private\platform.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>cpp-terminal</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp-terminal\prompt.cpp">
+      <Filter>cpp-terminal</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp-terminal\window.cpp">
+      <Filter>cpp-terminal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="conmanip.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="cpp-terminal\window.hpp">
+      <Filter>cpp-terminal</Filter>
     </ClInclude>
     <ClInclude Include="cpp-terminal\base.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>cpp-terminal</Filter>
     </ClInclude>
-    <ClInclude Include="cpp-terminal\input.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cpp-terminal\prompt.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cpp-terminal\version.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cpp-terminal\window.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="conmanip.h">
+      <Filter>cpp-terminal</Filter>
     </ClInclude>
     <ClInclude Include="cpp-terminal\private\conversion.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>cpp-terminal</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp-terminal\input.hpp">
+      <Filter>cpp-terminal</Filter>
     </ClInclude>
     <ClInclude Include="cpp-terminal\private\macros.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>cpp-terminal</Filter>
     </ClInclude>
     <ClInclude Include="cpp-terminal\private\platform.hpp">
+      <Filter>cpp-terminal</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp-terminal\prompt.hpp">
+      <Filter>cpp-terminal</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp-terminal\version.hpp">
+      <Filter>cpp-terminal</Filter>
+    </ClInclude>
+    <ClInclude Include="Infliction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Combat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

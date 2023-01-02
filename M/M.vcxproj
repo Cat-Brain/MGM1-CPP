@@ -150,6 +150,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Combat.h" />
     <ClInclude Include="conmanip.h" />
     <ClInclude Include="cpp-terminal\base.hpp" />
     <ClInclude Include="cpp-terminal\input.hpp" />
@@ -159,6 +160,8 @@
     <ClInclude Include="cpp-terminal\prompt.hpp" />
     <ClInclude Include="cpp-terminal\version.hpp" />
     <ClInclude Include="cpp-terminal\window.hpp" />
+    <ClInclude Include="Includes.h" />
+    <ClInclude Include="Infliction.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp-terminal\version.hpp.in" />
