@@ -79,10 +79,12 @@ public:
             }
         }
 
-        int unModifiedDamage = std::max(0, RandRange(damage - damageRand, damage + damageRand));
-        int unModifiedSelfDamage = std::max(0, RandRange(selfDamage - selfDamageRand, selfDamage + selfDamageRand));
-        return AttackHit(Hit(std::max(0, unModifiedDamage - damageReduction), inflictions, currentIndex), unModifiedDamage,
-            Hit(std::max(0, unModifiedSelfDamage - damageReduction), selfInflictions, currentIndex), unModifiedSelfDamage);
+        int unModifiedDamage = RandRange(damage - damageRand, damage + damageRand);
+        int unModifiedSelfDamage = RandRange(selfDamage - selfDamageRand, selfDamage + selfDamageRand);
+        return AttackHit(Hit(unModifiedDamage < 0 ? unModifiedDamage - damageReduction : std::max(0, unModifiedDamage - damageReduction),
+            inflictions, currentIndex), unModifiedDamage,
+            Hit(unModifiedSelfDamage < 0 ? unModifiedSelfDamage + damageReduction : std::max(0, unModifiedSelfDamage + damageReduction),
+                selfInflictions, currentIndex), unModifiedSelfDamage);
     }
 };
 
@@ -216,7 +218,7 @@ public:
                         name.c_str(), currentAttack->name.c_str(), attackHit.selfHit.damage);
                 }
                 for (StatusEffect statusEffect : attackHit.selfHit.inflictions)
-                    printf("This attack inflicts %s for %i turns on %s.\n", statusEffect.Name().c_str(), statusEffect.durationLeft);
+                    printf("This attack inflicts %s for %i turns on %s.\n", statusEffect.Name().c_str(), statusEffect.durationLeft, name.c_str());
             }
             else
             {
@@ -473,7 +475,7 @@ public:
                         name.c_str(), currentAttack->name.c_str(), attackHit.selfHit.damage);
                 }
                 for (StatusEffect statusEffect : attackHit.selfHit.inflictions)
-                    printf("This attack inflicts %s for %i turns on %s.\n", statusEffect.Name().c_str(), statusEffect.durationLeft);
+                    printf("This attack inflicts %s for %i turns on %s.\n", statusEffect.Name().c_str(), statusEffect.durationLeft, name.c_str());
             }
             else
             {
@@ -540,8 +542,8 @@ public:
                     printf("%s's %s infliction has been destroyed but it did %i damage this turn.\n", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str(), damage);
                 else
                     printf("%s's %s infliction has been destroyed and it did no damage this turn.\n", name.c_str(), inflictions[i - destroyedThisFrame].Name().c_str());
-                inflictions.erase(inflictions.begin() + i - destroyedThisFrame);
-                inflictionAttackers.erase(inflictionAttackers.begin() + i - destroyedThisFrame);
+                inflictions.erase(i - destroyedThisFrame + inflictions.begin());
+                inflictionAttackers.erase(i - destroyedThisFrame + inflictionAttackers.begin());
                 destroyedThisFrame += 1;
             }
             else

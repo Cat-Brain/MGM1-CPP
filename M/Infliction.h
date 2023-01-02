@@ -11,7 +11,7 @@ enum InflictionType
     DEADLY_HUG,
     STUN,
     WET,
-    STRENGHTEN
+    STRENGTHEN
     // Insert more status effects here.
 };
 

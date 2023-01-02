@@ -40,9 +40,9 @@ Attack rockThrow{ { {STUN, 1} }, { 25 }, 5, 5, {}, {}, 0, 0, {}, 1, "rock throw"
 Attack slimeHug{ { {DEADLY_HUG, 3} }, { 100 }, 0, 0, {}, {}, 0, 0, {}, 1, "slime hug" };
 Attack slimeSpike{ { {BLEED, 3} }, { 100 }, 5, 0, {}, {}, 0, 0, {}, 1, "slime spike" };
 Attack arrowShoot{ { {BURNING, 3}, {BURNING, 3}, {POISON, 8} }, { 50, 50, 100 }, 35, 10, {}, {}, 0, 0, {}, 3, "shoot arrow" };
-Attack chokeHold{ { {STUN, 1} }, { 100 }, 5, 5, {}, {}, 0, 0, {}, 1, "choke hold" };
+Attack chokeHold{ { {STUN, 1} }, { 95 }, 5, 5, {}, {}, 0, 0, {}, 1, "choke hold" };
 Attack deepCut{ { {BLEED, 15}, {BLEED, 15}, {BLEED, 15} }, { 100, 50, 25 }, 0, 0, {}, {}, 0, 0, {}, 1, "deep cut" };
-Attack finisher{ {}, {}, 20, 0, {}, {}, 0, 0, {}, 1, "finisher" };
+Attack finisher{ {}, {}, 20, 20, {}, {}, 0, 0, {}, 1, "finisher" };
 Attack heavyBlow{ {}, {}, 100, 0, {}, {}, 0, 0, {}, 5, "heavy blow" };
 Attack quickAttack{ {}, {}, 35, 0, {}, {}, 0, 0, {}, 2, "quick attack" };
 Attack heaviestBlow{ {}, {}, 125, 0, {}, {}, 0, 0, {}, 6, "heaviest blow" };
@@ -53,6 +53,8 @@ Attack scratch{ { {BLEED, 4} }, { 25 }, 15, 5, {}, {}, 0, 0, {}, 1, "scratch" };
 Attack spare{ {}, {}, 0, 0, {}, {}, 0, 0, {}, 1, "spare" };
 Attack growHead{ {}, {}, 0, 0, {}, {}, 0, 0, { &joshroHead }, 4, "grow head" };
 Attack ultraFireBreath{ { {BURNING, 3} }, { 100 }, 0, 0, {}, {}, 0, 0, {}, 1, "ultra fire breath" };
+Attack strengthen{ { {STRENGTHEN, 2} }, {100}, 0, 0, { {STRENGTHEN, 4} }, {100}, 0, 0, {}, 1, "strengthen" };
+Attack healify{ {}, {}, -25, 25, {}, {}, -50, 50, {}, 1, "healify" };
 
 //The syntax for enemies is :
 //Enemy(start health, max health, [attack1, attack2, ...], "name", leech amount 0 to 1 work best
@@ -163,12 +165,6 @@ void End()
 
 void CodeFind()
 {
-    printf("After your fight with the mutant, you realize how dire the situation is, and sit on a bench to think about your next move\n\
-very carefully. All this worry has got you very stressed out, so to alleviate that, you make a stop by the local library to pick up a good read.\n\
-Inside the library, you find that only three books are available to be checked out. While grabbing the books, a letter falls out, which reads as follows:\n\
-'In order to infiltrate Joshro's fortress, you must find the secret code inscribed within the following texts. Good luck, brave traveller!'\n\
-Revived by this sudden revelation that could help you save Misty, you get comfortable and start sifting through the books to find what you need.\n");
-
     vector<vector<string>> library{
         {"'WEB OF CHARLOTTE'S'", "INsIDe THE wATer, CHARLOTTE SEARCHED FOR WILBUR."},
         {"'THE GODDESS OF THE NECKLACES'", "FROODOO lookED At The EYE OF SOUrON INSANeLY."},
@@ -617,21 +613,21 @@ void FightSequence(vector<Entity> enemyTypes, bool spareable, vector<vector<stri
 
 void DeadlyTreasure()
 {
-    printf("While walking through the forest, you come across a golden box\n\
-that shimmers in the sunlight. A key lays inside the tree next to the box,\n\
-but the tree hole is too dark for you to see what else is inside the tree.");
+    printf("While walking through the forest, you come across a golden box \
+that shimmers in the sunlight. A key lays inside the tree next to the box, \
+but the tree hole is too dark for you to see what else is inside the tree.\n");
     string key = Input("Do you 'take the key' or 'let it be'? ");
     while (key != "take the key" && key != "let it be")
         key = Input("That won't work this time! Do you 'take the key' or 'let it be'? ");
     if (key == "take the key")
     {
-        printf("You grab the key quickly, thinking that history favors the bold, and open the box to find a potion\n\
-that increases your health by 50. You drink it, and continue along the path.");
+        printf("You grab the key quickly, thinking that history favors the bold, and open the box to find a potion \
+that increases your health by 50. You drink it, and continue along the path.\n");
         player.maxHealth += 50;
         player.health = player.health + 50;
     }
     else if (key == "let it be")
-        printf("You decide it's not worth the risk, and continue walking on the road.");
+        printf("You decide it's not worth the risk, and continue walking on the road.\n");
 }
 
 
@@ -662,11 +658,11 @@ printf("\nYou finish checking in with the pig, and enter the next chamber, eager
 void RiverEscape() // What if you had defeat an encounter while under a time limit, or if you had to stall for a while.
 {
     int stepsYes = RandRange(5, 15);
-    printf("You reach a river that could separate you from the ferocious carnivores, if you can reach the other side\n\
-of course. Fortunately, an old fisherman is seen walking towards his flimsy boat, and you take this opportunity to ask the man\n\
-for safe passage across the swift rapids. The only issue is, the man is not picking up the social cues that indicate your panic, so\n\
+    printf("You reach a river that could separate you from the ferocious carnivores, if you can reach the other side \
+of course. Fortunately, an old fisherman is seen walking towards his flimsy boat, and you take this opportunity to ask the man \
+for safe passage across the swift rapids. The only issue is, the man is not picking up the social cues that indicate your panic, so \
 you must repeatedly prod him into picking up the pace to save both of your souls!\n");
-    printf("You need to continously say yes to the man %i times before the wolves advance the %i\
+    printf("You need to continously say yes to the man %i times before the wolves advance the %i \
 steps needed to close the distance and devour you.\n", stepsYes, stepsYes);
     int prod = 0;
     int wolfRun = 0;
@@ -748,7 +744,7 @@ void StringWord(string& emptyStr)
     int letter = RandRange(0, static_cast<int>(currentStrings.size()) - 1);
     emptyStr += currentStrings[letter];
     currentStrings.erase(currentStrings.begin() + letter);
-    printf("******\n%s\n******", emptyStr.c_str());
+    printf("******\n%s\n******\n", emptyStr.c_str());
 }
 
 
@@ -789,7 +785,7 @@ below. You go to sleep, and wake up, happy that you avoided a possibly deadly dr
     // Must be take
     printf("For some almost supernatural reason, you feel as though you can use the potion for something greater, and decide\n\
 to store it in your pack for later use. You have a dream that a large green creature asks you for the potion in exchange for\n\
-safe passage across a path, but brush it off as your mind playing tricks on you and have a pretty uneventful rest of the night.");
+safe passage across a path, but brush it off as your mind playing tricks on you and have a pretty uneventful rest of the night.\n");
     return true;
 }
 
@@ -911,6 +907,12 @@ a gross troll appears in front of you, and you're able to notice that she did NO
 "After going through a whopping SEVEN possibly deadly levels, you've finally reached the castle, well, correction- castle entrance. The gate is \
 still intact, although the lever used to open the hefty doors is of course missing, so you begin to look around for a solution to this most \
 coincidental of situations.\n",
+"After your fight with the mutant, you realize how dire the situation is, and sit on a bench to think about your next move \
+very carefully. However, you get distracted by a bussiness card that lands on your leg.\n",
+"All this worry has got you very stressed out, so to alleviate that, you make a stop by the local library to pick up a good read.\n\
+Inside the library, you find that only three books are available to be checked out. While grabbing the books, a letter falls out, which reads as follows:\n\
+'In order to infiltrate Joshro's fortress, you must find the secret code inscribed within the following texts. Good luck, brave traveller!'\n\
+Revived by this sudden revelation that could help you save Misty, you get comfortable and start sifting through the books to find what you need.\n",
 "Finding the sewers was easy, but actually navigating through the dense masses of questionable matter proves difficult. \
 As you see a shimmer of light at the end of the tunnel, something large and hairy brushes past your leg, and as you question what\
 exactly that could've been, a freakishly large mutated rat as well as its two offsprings jump out of the water and try to lunge at you,\
@@ -988,7 +990,7 @@ void Run() // Runs the game, this function is called once per playthrough.
     bool brutalEnding = true;
     bool endingChosen = false;
 #pragma endregion
-#pragma region Early game
+#pragma region Armory
     printf("---------------------------------------------------------------------------------------------------------------------------\n\
 You are Max, a young man who takes on the brave quest of saving the\n\
 beautiful princess Misty from the evil dragon Joshro. Your story begins at the village\n\
@@ -1204,7 +1206,7 @@ You find out the troll's name is Samantha, and wish her well as you finally cros
                 printf("You decide that the troll was probably just saying all of that due to her inebriated state, and cross the bridge\n\
 quietly to continue your journey.\n");
         }
-        else if (bargainFight == "keep")
+        else
         {
             printf("You decide to be greedy and admittedly sort of dumb so as not to rid yourself of extra weight, and it comes back to bite you. 'WOW! So first\n\
 you disrespect my bridge, and then you don't even give me something for my dehydration! This won't do! I'm going to have to teach you a lesson in manners!\n\
@@ -1217,7 +1219,7 @@ make her even more angry, which doesn't help things in the slightest. You ready 
 better that situation could've turned out if you would've given the troll the potion in the first place, but ah whatever it's just a game, morals don't matter.\n");
         }
     }
-    else if (potionTroll == false)
+    else
     {
         printf("Because you have nothing to give the troll, like a potion most likely found in a cave that could easily keep the upcoming situation peaceful,\n\
 you blank out, and the troll notices this. 'WOW! So first you disrespect my bridge, and then you don't even give me something for my dehydration!\n\
@@ -1297,7 +1299,7 @@ exclaiming:'LeAvE, RiGhT nOw.' Obviously, you don't move, and the mutant spits o
     {
         brutalEnding = false;
         printf("You let the mutant go, and it shambles off into the early morning darkness.\n\
-Then your %s learns 'spare'.", player.weapon.name.c_str());
+Then your %s learns 'spare'.\n", player.weapon.name.c_str());
         player.weapon.LearnAttack(spare);
         StringWord(emptyStr);
     }
@@ -1305,26 +1307,64 @@ Then your %s learns 'spare'.", player.weapon.name.c_str());
         printf("You end the mutant.\n\
 The mutant shrivels up, and you jump back in horror as the supernatural occurrence unfolds in front of your eyes.\n\
 Death is something you've sort of gotten used to after all of the previous fights you've been in,\n\
-but this definitely takes the cake. You dust yourself off, and resume walking around the town in search of answers.");
+but this definitely takes the cake. You dust yourself off, and resume walking around the town in search of answers.\n");
 #pragma endregion
 #pragma region Magic Lesson
     Sleep();
     printf("\n\n++++++++++++++++\n\n");
+    printf(introMessages[6]);
+    printf("Rely cul magec lesuhns oll dey\nyul no wer to find\n\
+");
+    string yesMagic = Input("Do you want to join the 'magec lesuhns'? 'yes' or 'no' ");
+    while (yesMagic != "yes" && yesMagic != "no")
+        yesMagic = Input("That won't work this time Do you want to join the 'magic lesuhns'? 'yes' or 'no' ");
 
-    printf("");
+    if (yesMagic == "no")
+        printf("You decide against wasting your time with probably scam magic, and return to your other worries.\n");
+    else
+    {
+        printf("Upon deciding that you will go to the lesson you stand up from the bench and see a line of frogs going through an alleyway.\n\
+The frogs continue leading you until they stop in front of a small oak door\n\
+You continue through the door and are suprised to see that the room is small and nearly vacant, outside of more frogs and a message.\n\
+'Wee froogs cen tach yu 1 of 2 difrent spols, 'stengthen' end 'hoalify',\n\
+howevr bot o tem no only affact u, but also yur foes.\n\
+What is your choice traveller?\n");
+        string magicChoice = Input("You assume that they meant 'strengthen' or 'healify', but which one do you want? ");
+        while (magicChoice != "strengthen" && magicChoice != "healify")
+            magicChoice = Input("They only allow 'strengthen' and 'healify', which one? ");
+
+        if (magicChoice == "strengthen")
+        {
+            printf("A red frog walks through an opening in the wall and jumps on your %s.\n\
+The frog proceeds to dissolve into your %s.\n\
+Your %s learns 'strengthen'.\n", player.weapon.name.c_str(), player.weapon.name.c_str(), player.weapon.name.c_str());
+            player.weapon.LearnAttack(strengthen);
+        }
+        else
+        {
+            printf("A green frog walks through an opening in the wall and jumps on your %s.\n\
+The frog proceeds to dissolve into your %s.\n\
+Your %s learns 'healify'.\n", player.weapon.name.c_str(), player.weapon.name.c_str(), player.weapon.name.c_str());
+            player.weapon.LearnAttack(healify);
+        }
+
+        printf("Upon looking back at the room, you realize that it is now completely barren.\n\
+Bewildered, you leave and continue about your day.\n");
+    }
 #pragma endregion
 #pragma region Code Find
     Sleep();
     printf("\n\n++++++++++++++++\n\n");
+    printf(introMessages[7]);
     CodeFind(); // Lol, such a tiny region.
 #pragma endregion
 #pragma region Rats
     Sleep();
     printf("\n\n++++++++++++++++\n\n");
     location = "sewers";
-    printf(introMessages[6]);
+    printf(introMessages[8]);
     player.currentDeathMessage = "Maybe you should try to come here with more health, or try to outrun them.";
-    printf("Before beginning your attack on the rat, you remember that you used to take\n\
+    printf("Before beginning your attack on the rat, you remember that you used to take \
 medieval track and field at your former academy, and ponder over whether or not you should see if your skills are still in tip-top shape.\n\
 The little voice in your head warns you, though, that if your health has not been increased\
 past the default 100 value, you might not be able to outrun the rambunctious rodent after all.\n");
@@ -1346,6 +1386,7 @@ past the default 100 value, you might not be able to outrun the rambunctious rod
                 for (int i = 0; i < survivorRats.size(); i++)
                     survivorRats[i] = *specialFightEndingMonsters[i];
                 FightSequence(survivorRats, false, { {} });
+                if (restart) return;
             }
             else
             {
@@ -1498,9 +1539,7 @@ you crack your knuckles and massage your forehead in preparation for the mind-nu
         {
             if (i < 4)
             {
-                printf("******\n");
-                printf(emptyStr.c_str());
-                printf("******\n");
+                printf("******\n%s\n******\n", emptyStr.c_str());
                 string askString = Input(i < 3 ? "What is the word unscrambled? " : "Last chance! What is the word unscrambled? ");
                 if (askString == "string")
                 {
